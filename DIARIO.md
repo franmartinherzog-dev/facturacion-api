@@ -17,3 +17,17 @@
 - **Problema:** Initializr creó el paquete base como `facturacion_api`, distinto del `com.facturacion.api` definido en el diseño.
 - **Solución:** mover las clases con `git mv` y corregir la línea `package`, haciéndolo antes de escribir código para evitar un cambio mayor después.
 - **Resultado:** la API arranca correctamente (Tomcat 11, Hibernate 7.4.5, H2 2.4.240) y el login por defecto de Spring Security aparece en `localhost:8080`.
+
+## 21 de octubre de 2026 (tarde) - Entidad User y su repositorio
+
+- **Decisión:** el código (clases, campos, paquetes) se escribe en inglés (`User`, `companyName`, `taxId`, `address`), mientras que la memoria está redactada en español. Hay que mantener una equivalencia clara entre ambos al citar clases en la memoria.
+- **Decisión:** `GenerationType.IDENTITY` para que sea la base de datos la que genere los identificadores, y constructor `protected` sin argumentos en la entidad porque JPA lo exige.
+- **Decisión:** el campo `password` almacena únicamente el hash BCrypt, nunca la contraseña en claro.
+- **Problema:** la tabla de usuarios no puede llamarse `user`, porque es palabra reservada en H2 y fallaría al crear la tabla.
+- **Solución:** `@Table(name = "users")`.
+- **Problema:** la primera versión de `User.java` no compilaba: el import de `jakarta.persistence` estaba mal escrito (`persistance`), el NIF se había llamado `id` (duplicando la clave primaria) y el constructor no coincidía con el nombre de la clase.
+- **Solución:** imports explícitos en lugar de comodín, campo renombrado a `taxId` y clase, fichero y constructor con el mismo nombre. Con el comodín el error de escritura pasaba desapercibido hasta compilar.
+- **Resultado:** creados `User` y `UserRepository` (con `findByUsername` y `existsByUsername`, que se usarán en el registro y el login).
+
+- **Decisión:** se activa `spring.jpa.show-sql=true` en `application.properties`. Con `ddl-auto=update` Hibernate crea las tablas a partir de las entidades pero sin mostrar nada, así que no hay forma de saber si el esquema generado es el esperado. Esta propiedad imprime en el log cada sentencia SQL ejecutada y sirve como herramienta de depuración durante el desarrollo.
+- **Comprobación:** al arrancar la API con `./mvnw spring-boot:run`, el log muestra `create table users (...)` con las columnas `id`, `username`, `password`, `company_name`, `tax_id` y `address`, los campos obligatorios como `not null` y una restricción `unique` sobre `username`. El esquema coincide con el diseño.
