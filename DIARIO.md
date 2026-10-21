@@ -31,3 +31,12 @@
 
 - **Decisión:** se activa `spring.jpa.show-sql=true` en `application.properties`. Con `ddl-auto=update` Hibernate crea las tablas a partir de las entidades pero sin mostrar nada, así que no hay forma de saber si el esquema generado es el esperado. Esta propiedad imprime en el log cada sentencia SQL ejecutada y sirve como herramienta de depuración durante el desarrollo.
 - **Comprobación:** al arrancar la API con `./mvnw spring-boot:run`, el log muestra `create table users (...)` con las columnas `id`, `username`, `password`, `company_name`, `tax_id` y `address`, los campos obligatorios como `not null` y una restricción `unique` sobre `username`. El esquema coincide con el diseño.
+
+
+## 21 de octubre de 2026 (tarde) - Entidad Client
+
+- **Decisión:** la relación entre cliente y usuario se modela con `@ManyToOne` y `@JoinColumn(name = "user_id")` en `Client`. Es el lado "muchos" de la relación 1:N del diagrama Entidad-Relación y garantiza que cada cliente pertenece a un único usuario. Se marca como obligatoria (`optional = false`, `nullable = false`) para que no puedan existir clientes sin dueño.
+- **Decisión:** `FetchType.LAZY` para que Hibernate no cargue el usuario completo cada vez que carga un cliente, sino solo cuando se necesite. Reduce consultas innecesarias y contribuye al requisito de rendimiento.
+- **Decisión:** `Client` tiene setters para sus datos editables (necesarios para la edición del CRUD), pero no para `user`, porque un cliente no puede cambiar de propietario.
+- **Comprobación:** al arrancar, el log muestra `create table clients (...)` con la columna `user_id bigint not null` y una restricción de clave foránea hacia `users`. El esquema coincide con el diseño.
+- **Observación:** el arranque muestra que Spring Boot encuentra `1 JPA repository interface` (`UserRepository`); `Client` todavía no tiene repositorio.
