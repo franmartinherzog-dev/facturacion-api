@@ -59,3 +59,11 @@
 - **Problema:** la primera versión tenía el nombre de columna mal escrito en la restricción única (`"numer"` en lugar de `"number"`), de modo que apuntaba a una columna inexistente. Además, el constructor no asignaba `vatRate`; este error compila y arranca sin avisar, pero habría dejado el IVA a `null` en todas las facturas y habría fallado al guardar la primera.
 - **Solución:** corregir ambos puntos. **Lección:** los fallos de constructor no los detecta el compilador ni el arranque; se descubrirán con las pruebas unitarias de la creación de facturas.
 - **Comprobación:** al arrancar, el log muestra `create table invoices (...)` con los importes como `numeric(12,2)` y los tipos impositivos como `numeric(5,2)` (H2 usa `numeric`, equivalente a `decimal`), la restricción `unique (user_id, number)` y dos claves foráneas, hacia `clients` y hacia `users`. El esquema coincide con el diagrama Entidad-Relación.
+
+
+## 22 de octubre de 2026 - Entidad InvoiceLine
+
+- **Decisión:** `getSubtotal()` (cantidad × precio unitario) no se almacena en la base de datos, sino que se calcula cuando se necesita. Hibernate lee los campos de la entidad (la anotación `@Id` está sobre un campo), no los getters, así que no genera columna para él. De este modo el subtotal nunca puede quedar desincronizado respecto a la cantidad y el precio.
+- **Decisión:** `getSubtotal()` devuelve el producto exacto, sin redondear. El redondeo a dos decimales se aplicará una única vez sobre la suma al calcular los totales de la factura, tal como indica la fórmula de la memoria (base imponible = Σ cantidad × precio unitario). Redondear cada línea y luego sumar podría dar diferencias de céntimos.
+- **Decisión:** la cantidad es `BigDecimal` con dos decimales (`precision = 10, scale = 2`) para admitir cantidades como 1,5 horas.
+- **Comprobación:** al arrancar, el log muestra `create table invoice_lines (...)` con `quantity numeric(10,2)`, `unit_price numeric(12,2)` e `invoice_id bigint not null`, y una clave foránea hacia `invoices`. Con esta entidad quedan creadas las cuatro tablas del diagrama Entidad-Relación.
