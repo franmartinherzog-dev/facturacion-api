@@ -67,3 +67,12 @@
 - **Decisión:** `getSubtotal()` devuelve el producto exacto, sin redondear. El redondeo a dos decimales se aplicará una única vez sobre la suma al calcular los totales de la factura, tal como indica la fórmula de la memoria (base imponible = Σ cantidad × precio unitario). Redondear cada línea y luego sumar podría dar diferencias de céntimos.
 - **Decisión:** la cantidad es `BigDecimal` con dos decimales (`precision = 10, scale = 2`) para admitir cantidades como 1,5 horas.
 - **Comprobación:** al arrancar, el log muestra `create table invoice_lines (...)` con `quantity numeric(10,2)`, `unit_price numeric(12,2)` e `invoice_id bigint not null`, y una clave foránea hacia `invoices`. Con esta entidad quedan creadas las cuatro tablas del diagrama Entidad-Relación.
+
+
+## 22 de octubre de 2026 (tarde) - Relación Invoice - InvoiceLine con borrado en cascada
+
+- **Decisión:** `Invoice` incorpora la lista de líneas con `@OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)`. `mappedBy` indica que la clave foránea ya existe en `invoice_lines.invoice_id`, por lo que no se crean tablas ni columnas nuevas. `CascadeType.ALL` hace que al guardar una factura se guarden sus líneas y al borrarla se borren también (restricción del apartado 5.2.2 de la memoria), y `orphanRemoval` elimina de la base de datos las líneas que se quiten de la lista.
+- **Decisión:** el método `addLine(descripción, cantidad, precio)` crea la línea ya enlazada a su factura, para que no pueda olvidarse de enlazarla.
+- **Problema:** al añadir los imports nuevos, VS Code los eliminaba al guardar, porque todavía no se usaban en el código (opción de organizar imports al guardar).
+- **Solución:** escribir primero el campo y los métodos, y añadir después los imports con la corrección rápida del editor (`Cmd + .`), ya con las clases en uso.
+- **Comprobación:** la API arranca sin errores (`Started FacturacionApiApplication`) y no se genera ninguna tabla nueva, como se esperaba. Con esto queda completo el modelo de dominio de la API: `User`, `Client`, `Invoice` e `InvoiceLine`.
