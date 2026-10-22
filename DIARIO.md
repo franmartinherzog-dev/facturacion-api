@@ -48,3 +48,14 @@
 - **Observación:** Spring Data JPA genera la consulta a partir del nombre del método, por lo que un nombre incorrecto (por ejemplo `findByUser(Long id, User user)` en lugar de `findByIdAndUser`) no es un simple fallo de estilo: la consulta no se corresponde con los parámetros y la aplicación falla al arrancar.
 - **Decisión:** se descarta `existsByUser`, porque comprobar si un cliente tiene facturas (para impedir su baja) corresponde al repositorio de facturas, que se creará más adelante.
 - **Comprobación:** tras corregir el repositorio, la API arranca sin errores y el log indica `Found 2 JPA repository interfaces` (`UserRepository` y `ClientRepository`). Spring Data valida los nombres de los métodos al arrancar, por lo que esta comprobación confirma que las tres consultas son correctas.
+
+
+## 22 de octubre de 2026 - Entidad Invoice
+
+- **Decisión:** los importes (`taxableBase`, `vatAmount`, `irpfAmount`, `total`) y los tipos impositivos se definen como `BigDecimal` con `precision = 12, scale = 2` (`precision = 5, scale = 2` para los tipos), que se traduce a `decimal(12,2)` en la base de datos. Con `double` aparecen errores de representación (por ejemplo `0.1 + 0.2 = 0.30000000000000004`), inadmisibles al manejar dinero (RNF-20).
+- **Decisión:** el número de factura es único por usuario, no global, mediante `@UniqueConstraint` sobre `(user_id, number)`. Así cada usuario tiene su propia numeración correlativa con formato AAAA-NNNN.
+- **Decisión:** `Invoice` no tiene setters: una factura emitida no se modifica, lo que es coherente con la trazabilidad que se plantea en la introducción. Los importes los calcula siempre la API.
+- **Decisión:** `Invoice` se crea primero sin la lista de líneas, porque `InvoiceLine` todavía no existe; la relación `@OneToMany` con borrado en cascada se añadirá cuando se cree esa entidad, para que cada paso compile.
+- **Problema:** la primera versión tenía el nombre de columna mal escrito en la restricción única (`"numer"` en lugar de `"number"`), de modo que apuntaba a una columna inexistente. Además, el constructor no asignaba `vatRate`; este error compila y arranca sin avisar, pero habría dejado el IVA a `null` en todas las facturas y habría fallado al guardar la primera.
+- **Solución:** corregir ambos puntos. **Lección:** los fallos de constructor no los detecta el compilador ni el arranque; se descubrirán con las pruebas unitarias de la creación de facturas.
+- **Comprobación:** al arrancar, el log muestra `create table invoices (...)` con los importes como `numeric(12,2)` y los tipos impositivos como `numeric(5,2)` (H2 usa `numeric`, equivalente a `decimal`), la restricción `unique (user_id, number)` y dos claves foráneas, hacia `clients` y hacia `users`. El esquema coincide con el diagrama Entidad-Relación.
