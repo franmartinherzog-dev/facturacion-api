@@ -40,3 +40,11 @@
 - **Decisión:** `Client` tiene setters para sus datos editables (necesarios para la edición del CRUD), pero no para `user`, porque un cliente no puede cambiar de propietario.
 - **Comprobación:** al arrancar, el log muestra `create table clients (...)` con la columna `user_id bigint not null` y una restricción de clave foránea hacia `users`. El esquema coincide con el diseño.
 - **Observación:** el arranque muestra que Spring Boot encuentra `1 JPA repository interface` (`UserRepository`); `Client` todavía no tiene repositorio.
+
+
+## 21 de octubre de 2026 (tarde) - Repositorio de clientes
+
+- **Decisión:** `ClientRepository` solo ofrece consultas que incluyen al usuario propietario (`findByUser`, `findByIdAndUser` y `findByUserAndNameContainingIgnoreCase`). Nunca se busca un cliente solo por su identificador: así, si un usuario pide un cliente ajeno, simplemente no se encuentra, lo que aplica de forma estructural el requisito de aislamiento de datos entre usuarios (RNF de seguridad).
+- **Observación:** Spring Data JPA genera la consulta a partir del nombre del método, por lo que un nombre incorrecto (por ejemplo `findByUser(Long id, User user)` en lugar de `findByIdAndUser`) no es un simple fallo de estilo: la consulta no se corresponde con los parámetros y la aplicación falla al arrancar.
+- **Decisión:** se descarta `existsByUser`, porque comprobar si un cliente tiene facturas (para impedir su baja) corresponde al repositorio de facturas, que se creará más adelante.
+- **Comprobación:** tras corregir el repositorio, la API arranca sin errores y el log indica `Found 2 JPA repository interfaces` (`UserRepository` y `ClientRepository`). Spring Data valida los nombres de los métodos al arrancar, por lo que esta comprobación confirma que las tres consultas son correctas.
