@@ -84,3 +84,12 @@
 - **Decisión:** se usa `jjwt-gson` en lugar de `jjwt-jackson` porque este último depende de Jackson 2, mientras que Spring Boot 4 trae Jackson 3, y mezclar ambos podría provocar conflictos de versiones (ver apartado 7.1.1 de la memoria).
 - **Comprobación:** `./mvnw compile` descarga las tres librerías y termina con `BUILD SUCCESS`, lo que confirma que la versión 0.13.0 existe y es compatible con el resto de dependencias.
 - **Observación:** OpenPDF no se añade todavía; se incorporará en la tarea de generación de PDF (T15), para no cargar dependencias que aún no se usan.
+
+
+## 23 de octubre de 2026 (mediodía) - Configuración de la clave JWT
+
+- **Problema:** los tokens JWT se firman con una clave secreta; quien la conozca puede fabricar tokens válidos para cualquier usuario. El repositorio de GitHub es público, por lo que la clave no puede escribirse en `application.properties`.
+- **Solución:** la clave se lee de la variable de entorno `JWT_SECRET` mediante `app.jwt.secret=${JWT_SECRET}`. Se genera con `openssl rand -base64 48` y no se guarda en ningún fichero del proyecto. Esto forma parte de las medidas de protección frente a vulnerabilidades comunes (RNF de seguridad) y habrá que explicarlo en el manual de instalación (Anexo I): quien despliegue la API debe definir `JWT_SECRET` antes de arrancarla.
+- **Decisión:** no se define un valor por defecto para la clave. Si la variable no existe, la API debe negarse a arrancar con un error claro, en lugar de funcionar silenciosamente con una clave insegura.
+- **Decisión:** la caducidad del token se fija en `app.jwt.expiration-ms=3600000` (1 hora), configurable sin tocar el código.
+- **Observación:** el arranque correcto de la API todavía no demuestra que la variable se lee bien, porque Spring no resuelve una propiedad hasta que algún componente la utiliza. La comprobación real se hará al crear `JwtService`.
