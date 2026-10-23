@@ -93,3 +93,13 @@
 - **Decisión:** no se define un valor por defecto para la clave. Si la variable no existe, la API debe negarse a arrancar con un error claro, en lugar de funcionar silenciosamente con una clave insegura.
 - **Decisión:** la caducidad del token se fija en `app.jwt.expiration-ms=3600000` (1 hora), configurable sin tocar el código.
 - **Observación:** el arranque correcto de la API todavía no demuestra que la variable se lee bien, porque Spring no resuelve una propiedad hasta que algún componente la utiliza. La comprobación real se hará al crear `JwtService`.
+
+
+## 23 de octubre de 2026 - JwtService
+
+- **Decisión:** `JwtService` (paquete `security`) se encarga de generar y validar los tokens JWT con tres métodos: `generateToken(User)`, que crea el token con el nombre de usuario, la fecha de emisión y la de caducidad y lo firma; `extractUsername(token)`, que verifica firma y caducidad y devuelve el usuario; y `validateToken(token)`, que envuelve a la anterior y devuelve `true` o `false` en lugar de propagar la excepción, para que el filtro de seguridad pueda usarlo directamente.
+- **Decisión:** la clave se decodifica de Base64 (formato que genera `openssl`) y JJWT elige el algoritmo según su tamaño; exige un mínimo de 256 bits.
+- **Problema:** el archivo se creó por error en una carpeta `security/` en la raíz del proyecto, en lugar de en `src/main/java/com/facturacion/api/security/`. Maven solo compila `src/main/java`, así que el arranque de la API terminó sin errores aunque `JwtService` no existía para Spring: un arranque correcto no demostraba nada. Además, el código tenía errores (dos métodos `validateToken` y `Jwt.parser()` en lugar de `Jwts.parser()`) que el compilador habría detectado.
+- **Solución:** mover el archivo a su ubicación correcta, corregir el código y borrar la carpeta sobrante.
+- **Lección:** una prueba solo vale si realmente ejercita lo que se quiere probar. En adelante, al comprobar un componente nuevo se verificará también que aparece en el log o en los resultados (por ejemplo, con una prueba unitaria), no solo que la aplicación arranque.
+- **Comprobación:** tras mover y corregir el archivo, `target/classes/com/facturacion/api/security/JwtService.class` aparece compilado y la API arranca con `JwtService` registrado como componente de Spring, lo que confirma que la variable de entorno `JWT_SECRET` se resuelve correctamente y que la clave es válida para JJWT.
