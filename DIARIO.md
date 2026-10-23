@@ -76,3 +76,11 @@
 - **Problema:** al añadir los imports nuevos, VS Code los eliminaba al guardar, porque todavía no se usaban en el código (opción de organizar imports al guardar).
 - **Solución:** escribir primero el campo y los métodos, y añadir después los imports con la corrección rápida del editor (`Cmd + .`), ya con las clases en uso.
 - **Comprobación:** la API arranca sin errores (`Started FacturacionApiApplication`) y no se genera ninguna tabla nueva, como se esperaba. Con esto queda completo el modelo de dominio de la API: `User`, `Client`, `Invoice` e `InvoiceLine`.
+
+
+## 23 de octubre de 2026 - Dependencias de JWT
+
+- **Decisión:** se añade JJWT 0.13.0 al `pom.xml` con tres módulos: `jjwt-api` (interfaces que usa el código propio), `jjwt-impl` (implementación, en ámbito `runtime` porque el código nunca la usa directamente) y `jjwt-gson` (serialización del contenido del token a JSON, también `runtime`).
+- **Decisión:** se usa `jjwt-gson` en lugar de `jjwt-jackson` porque este último depende de Jackson 2, mientras que Spring Boot 4 trae Jackson 3, y mezclar ambos podría provocar conflictos de versiones (ver apartado 7.1.1 de la memoria).
+- **Comprobación:** `./mvnw compile` descarga las tres librerías y termina con `BUILD SUCCESS`, lo que confirma que la versión 0.13.0 existe y es compatible con el resto de dependencias.
+- **Observación:** OpenPDF no se añade todavía; se incorporará en la tarea de generación de PDF (T15), para no cargar dependencias que aún no se usan.
