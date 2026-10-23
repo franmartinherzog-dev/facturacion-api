@@ -113,3 +113,12 @@
 - **Causa:** el archivo de la prueba se había creado en `src/test/java/com/facturacion/api/` en lugar de en su subcarpeta `security/`, y VS Code había compilado una versión antigua sin la línea `package`, que quedó en `target/test-classes`. Es la segunda vez que un archivo acaba en una carpeta que no corresponde a su paquete.
 - **Solución:** mover el archivo a `src/test/java/com/facturacion/api/security/` y ejecutar `./mvnw clean test`, que borra `target/` y elimina el `.class` obsoleto. **Lección:** la carpeta debe coincidir siempre con la línea `package`, y ante resultados raros conviene ejecutar `./mvnw clean test`, que borra `target/` y evita arrastrar clases antiguas.
 - **Comprobación:** `./mvnw clean test -Dtest=JwtServiceTest` ejecuta las 5 pruebas sin fallos y termina con `BUILD SUCCESS`. Queda verificado que `JwtService` genera tokens válidos y rechaza los manipulados, caducados, firmados con otra clave y los que no son tokens.
+
+
+## 23 de octubre de 2026 (tarde) - DTO de registro
+
+- **Decisión:** `RegisterRequest` se implementa como `record` de Java (clase inmutable que genera sola constructor, accesores y `equals`), adecuado para un objeto de transferencia de datos. Contiene solo cinco campos (`username`, `password`, `companyName`, `taxId`, `address`): el cliente no puede enviar ni fijar campos internos como el identificador, que es la razón por la que se usan DTOs en lugar de exponer la entidad `User` (apartado 5.1.3 de la memoria).
+- **Decisión:** las validaciones se declaran junto a cada dato (`@NotBlank`, `@Size`, `@Pattern`), con validación declarativa en el servidor (RNF-04). Aún no se ejecutan: se activarán cuando el controlador reciba la petición con `@Valid`.
+- **Decisión:** la contraseña se limita a un máximo de 72 caracteres porque BCrypt ignora todo lo que supere los 72 bytes, de modo que dos contraseñas largas que solo se diferenciaran al final producirían el mismo hash.
+- **Decisión:** el NIF/CIF se valida solo por formato (DNI, NIE o CIF) mediante expresión regular, sin comprobar la letra o dígito de control. Es suficiente para el prototipo; la validación completa queda como posible mejora futura.
+- **Comprobación:** `./mvnw clean compile` compila 9 archivos fuente y termina con `BUILD SUCCESS`.
