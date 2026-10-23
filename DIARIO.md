@@ -103,3 +103,13 @@
 - **Solución:** mover el archivo a su ubicación correcta, corregir el código y borrar la carpeta sobrante.
 - **Lección:** una prueba solo vale si realmente ejercita lo que se quiere probar. En adelante, al comprobar un componente nuevo se verificará también que aparece en el log o en los resultados (por ejemplo, con una prueba unitaria), no solo que la aplicación arranque.
 - **Comprobación:** tras mover y corregir el archivo, `target/classes/com/facturacion/api/security/JwtService.class` aparece compilado y la API arranca con `JwtService` registrado como componente de Spring, lo que confirma que la variable de entorno `JWT_SECRET` se resuelve correctamente y que la clave es válida para JJWT.
+
+
+## 23 de octubre de 2026 (tarde) - Pruebas unitarias de JwtService
+
+- **Decisión:** se prueba `JwtService` con pruebas unitarias de JUnit 5 sin arrancar Spring, construyendo el servicio directamente con claves propias del test (no son secretas). Así las pruebas son rápidas y no dependen de la variable de entorno `JWT_SECRET`.
+- **Pruebas:** token válido (se acepta y devuelve el usuario), token manipulado (se rechaza al alterar un carácter de la firma), token caducado (se genera con duración negativa para no esperar una hora), token firmado con otra clave y texto que no es un token. Estas cuatro últimas comprueban que el servicio rechaza lo que debe rechazar, que es lo que da valor a la autenticación con JWT.
+- **Problema:** `./mvnw test -Dtest=JwtServiceTest` pasó las 5 pruebas pero terminó en `BUILD FAILURE` por un segundo `JwtServiceTest` en el paquete `com.facturacion.api` que fallaba con `NoClassDefFoundError: JwtService`.
+- **Causa:** el archivo de la prueba se había creado en `src/test/java/com/facturacion/api/` en lugar de en su subcarpeta `security/`, y VS Code había compilado una versión antigua sin la línea `package`, que quedó en `target/test-classes`. Es la segunda vez que un archivo acaba en una carpeta que no corresponde a su paquete.
+- **Solución:** mover el archivo a `src/test/java/com/facturacion/api/security/` y ejecutar `./mvnw clean test`, que borra `target/` y elimina el `.class` obsoleto. **Lección:** la carpeta debe coincidir siempre con la línea `package`, y ante resultados raros conviene ejecutar `./mvnw clean test`, que borra `target/` y evita arrastrar clases antiguas.
+- **Comprobación:** `./mvnw clean test -Dtest=JwtServiceTest` ejecuta las 5 pruebas sin fallos y termina con `BUILD SUCCESS`. Queda verificado que `JwtService` genera tokens válidos y rechaza los manipulados, caducados, firmados con otra clave y los que no son tokens.
