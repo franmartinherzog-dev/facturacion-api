@@ -169,3 +169,11 @@
 - **Causa:** el archivo `AuthServiceTest.java` se había creado en `src/main/java/` en lugar de `src/test/java/`. El código de `main` no tiene JUnit ni Mockito en su classpath, y además un archivo de pruebas en `main` rompe la compilación de toda la aplicación. Es la tercera vez que un archivo acaba en una ubicación que no corresponde (antes `security/` en la raíz y `JwtServiceTest` fuera de su subcarpeta).
 - **Solución:** mover el archivo a `src/test/java/com/facturacion/api/service/`. **Lección:** antes de crear cada archivo hay que comprobar que la ruta empieza por `src/main/java` (código de la aplicación) o `src/test/java` (pruebas), y que las carpetas siguientes coinciden con la línea `package`.
 - **Comprobación:** `./mvnw clean test -Dtest=AuthServiceTest` ejecuta las 6 pruebas sin fallos ni errores (informe de Surefire: `Tests run: 6, Failures: 0, Errors: 0`). Queda verificado que el registro guarda la contraseña cifrada, que rechaza usuarios repetidos sin guardar nada, que el login devuelve un token válido y que los dos tipos de fallo de login son indistinguibles. También confirma que Mockito viene incluido con las dependencias de test de Spring Boot.
+
+
+## 26 de octubre de 2026 (mañana) - AuthController
+
+- **Decisión:** `AuthController` expone los dos endpoints públicos del apartado 5.1.2 de la memoria, `POST /api/auth/register` y `POST /api/auth/login`. No contiene lógica: recibe la petición, delega en `AuthService` y devuelve el resultado, manteniendo la separación en capas.
+- **Decisión:** los parámetros se anotan con `@Valid`, que es lo que activa por fin las validaciones declaradas en los DTOs (`@NotBlank`, `@Size`, `@Pattern`): si un campo no las cumple, Spring rechaza la petición antes de que llegue al servicio. El registro responde `201 Created` con `@ResponseStatus`, el código adecuado cuando se crea un recurso.
+- **Observación:** mientras no se configure `SecurityConfig`, Spring Security aplica su configuración por defecto, que exige autenticación en todas las rutas, por lo que estos endpoints responderían 401. Se resolverá al declarar las rutas públicas y el filtro JWT.
+- **Comprobación:** `AuthController.class` aparece compilado en `target/classes/com/facturacion/api/controller/`.
