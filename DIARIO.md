@@ -246,3 +246,27 @@
 - **Solución:** `.requestMatchers("/api/auth/**", "/error").permitAll()`. No expone nada sensible: una petición sin token a una ruta protegida se rechaza igualmente en la primera comprobación, antes de que exista un error que reenviar.
 - **Comprobación:** tras el cambio, con token válido la respuesta es `404` (la petición supera la seguridad y solo falla por no existir la ruta) y sin token sigue siendo `401`. Queda demostrado que el filtro identifica al usuario y que la nueva regla no abre rutas protegidas.
 - **Lección:** una prueba con resultado inesperado no se da por buena; primero se descarta lo más simple (variable vacía) y después se busca la causa real.
+
+
+## 26 de octubre de 2026 (mañana) - DTO de entrada de clientes
+
+- **Decisión:** `ClientRequest` contiene los mismos campos editables que la entidad `Client` (`name`, `taxId`, `address`, `email`, `phone`) pero sin `id` ni `user`. El cliente de la API nunca decide a quién pertenece un cliente: el propietario se deduce del token, no del JSON, lo que impide crear o modificar clientes a nombre de otro usuario.
+- **Decisión:** `name` y `taxId` son obligatorios (`@NotBlank`), coincidiendo con las columnas `not null` de la tabla, y el NIF/CIF se valida por formato. El resto de campos son opcionales; `@Email` comprueba el formato del correo solo cuando se envía.
+- **Decisión:** los límites de `@Size` (150, 255, 100 y 20) coinciden con la longitud de las columnas de `Client`. Si no coincidieran, un valor demasiado largo superaría la validación y fallaría después al guardar, con un error de base de datos en lugar de un 400 limpio.
+- **Observación:** la expresión regular del NIF/CIF está repetida en `RegisterRequest` y `ClientRequest`. Se deja así por ahora; si molesta más adelante, se extraerá a una constante compartida.
+- **Comprobación:** `ClientRequest.class` aparece compilado en `target/classes/com/facturacion/api/dto/`.
+
+
+## 26 de octubre de 2026 (mañana) - DTO de salida de clientes
+
+- **Decisión:** `ClientResponse` es el DTO de salida de los clientes. Incluye el `id`, que el cliente JavaFX necesita para editar o borrar, pero no el propietario (`user`).
+- **Decisión:** no se devuelve la entidad `Client` directamente: contiene la relación con `User`, cuyo objeto incluye la contraseña cifrada, de modo que serializarla filtraría datos del propietario. Además, al ser una relación perezosa (`LAZY`), podría provocar un error al convertirla a JSON fuera de la transacción. El DTO elige exactamente qué sale (apartado 5.1.3).
+- **Decisión:** la conversión de entidad a DTO vive en un único sitio, el método estático `ClientResponse.from(Client)`, que usará el servicio.
+- **Comprobación:** `ClientResponse.class` aparece compilado en `target/classes/com/facturacion/api/dto/`.
+
+
+## 26 de octubre de 2026 (mañana) - Excepción de cliente no encontrado
+
+- **Decisión:** se crea `ClientNotFoundException` y `GlobalExceptionHandler` la traduce a `404 Not Found`.
+- **Decisión:** un cliente que existe pero pertenece a otro usuario también produce este 404, no un 403. Como `ClientRepository.findByIdAndUser` busca por identificador y propietario a la vez, para el servicio ese cliente simplemente no existe. Así un usuario no puede descubrir qué identificadores pertenecen a otros: un 403 le confirmaría que existe. Es la misma lógica de no revelar información que se aplica en el login (RNF-04). Los casos de uso del apartado 5.2.3 hablan de un error 404 o 403 para recursos ajenos; se elige el 404 por esta razón.
+- **Comprobación:** `ClientNotFoundException.class` y `GlobalExceptionHandler.class` aparecen compilados en `target/classes/com/facturacion/api/exception/`.

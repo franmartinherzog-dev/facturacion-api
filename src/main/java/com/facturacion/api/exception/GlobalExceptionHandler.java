@@ -33,4 +33,9 @@ public class GlobalExceptionHandler {
         problem.setProperty("errors", errors);
         return problem;
     }
+
+    @ExceptionHandler(ClientNotFoundException.class)
+    public ProblemDetail handleClientNotFound(ClientNotFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
 }
