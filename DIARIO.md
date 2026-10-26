@@ -222,3 +222,27 @@
 - **Observación:** los mensajes de validación salen en idiomas distintos: `taxId` en inglés (escrito explícitamente en la anotación) y `password` en español (mensaje por defecto de Hibernate Validator, que usa el idioma del sistema donde se ejecuta la API). Se resuelve fijando el idioma de la aplicación para que la respuesta no dependa de la máquina.
 - **Solución:** se fija el idioma con `spring.web.locale=en` y `spring.web.locale-resolver=fixed`, de modo que la API genera siempre los mensajes en inglés, con independencia de la configuración regional del equipo o de la cabecera `Accept-Language` del cliente. Así el comportamiento es determinista en cualquier despliegue.
 - **Comprobación:** repetida la petición de datos inválidos, ambos mensajes salen en inglés: `"taxId":"Invalid NIF/CIF format"` y `"password":"size must be between 8 and 72"`.
+
+
+## 26 de octubre de 2026 (mañana) - JwtAuthFilter
+
+- **Decisión:** `JwtAuthFilter` extiende `OncePerRequestFilter` (se ejecuta una sola vez por petición) y lee la cabecera `Authorization: Bearer <token>`, la convención estándar para enviar un token, que usará el cliente JavaFX. Si el token es válido, registra en el `SecurityContext` que la petición pertenece a ese usuario, y Spring Security la considera autenticada.
+- **Decisión:** si no hay cabecera o el token no es válido, el filtro no rechaza la petición, simplemente no registra autenticación. El rechazo lo produce la regla `anyRequest().authenticated()` de `SecurityConfig` con un 401, de modo que hay un único punto que decide el rechazo.
+- **Decisión:** el filtro no se anota con `@Component`: Spring Boot registraría además cualquier filtro-bean como filtro general del servidor y acabaría ejecutándose en dos sitios. Se instanciará dentro de `SecurityConfig`.
+- **Decisión:** el *principal* de la autenticación es el nombre de usuario (`String`). Los servicios buscarán después la entidad `User` con `findByUsername`, lo que evita una consulta a la base de datos en cada petición. La lista de permisos es vacía, porque los roles quedaron fuera del alcance del prototipo (apartado 4).
+- **Comprobación:** `JwtAuthFilter.class` aparece compilado en `target/classes/com/facturacion/api/security/`.
+
+
+## 26 de octubre de 2026 (mañana) - Conexión del filtro JWT en SecurityConfig
+
+- **Decisión:** `SecurityConfig` instancia `JwtAuthFilter` a mano (`new JwtAuthFilter(jwtService)`) y lo coloca con `addFilterBefore(..., UsernamePasswordAuthenticationFilter.class)`, antes del filtro que gestionaba el login con usuario y contraseña, de modo que cuando la petición llega a la regla de autorización el token ya se ha leído. `JwtService` se recibe como parámetro del método que declara la cadena de filtros.
+- **Comprobación:** `SecurityConfig.class` se ha recompilado con el filtro conectado. Falta la prueba real con una ruta protegida.
+
+
+## 26 de octubre de 2026 (mañana) - Prueba del filtro JWT y ruta /error
+
+- **Prueba:** peticiones a la ruta protegida `/api/clientes`, que aún no existe: sin token (401), con un token falso (401) y con un token válido. En la tercera se esperaba 404, porque la petición debía superar la seguridad y fallar solo por no existir la ruta; se obtuvo 401. Se comprobó que el token no estaba vacío (150 caracteres), lo que descartó un fallo al extraerlo.
+- **Causa:** cuando una petición termina en error, Spring la reenvía internamente a `/error`, que también pasa por las reglas de seguridad y exigía autenticación. `JwtAuthFilter` no se vuelve a ejecutar en ese reenvío, así que la petición llegaba sin identidad y se devolvía 401 en lugar del 404 (o del 400 de un JSON mal formado) que correspondía.
+- **Solución:** `.requestMatchers("/api/auth/**", "/error").permitAll()`. No expone nada sensible: una petición sin token a una ruta protegida se rechaza igualmente en la primera comprobación, antes de que exista un error que reenviar.
+- **Comprobación:** tras el cambio, con token válido la respuesta es `404` (la petición supera la seguridad y solo falla por no existir la ruta) y sin token sigue siendo `401`. Queda demostrado que el filtro identifica al usuario y que la nueva regla no abre rutas protegidas.
+- **Lección:** una prueba con resultado inesperado no se da por buena; primero se descarta lo más simple (variable vacía) y después se busca la causa real.
