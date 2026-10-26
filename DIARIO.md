@@ -336,3 +336,18 @@
 - **Decisión:** `pom.xml` con `javafx-controls` y `javafx-fxml` 25.0.5 y `jackson-databind` 3.1.5 (versiones en `<properties>`, un solo sitio para cambiarlas). No se añade ninguna librería HTTP: se usará el `java.net.http.HttpClient` del JDK, según el apartado 7.1.1. Se fija `maven-compiler-plugin` 3.15.0, la misma versión que usa la API.
 - **Comprobación:** `./mvnw clean compile` termina con `BUILD SUCCESS` y descarga JavaFX y Jackson.
 - **Pendiente de comprobar:** `compile` no usa `javafx-maven-plugin` 0.0.8, así que esa versión no está verificada hasta ejecutar `./mvnw javafx:run`.
+
+## 26 de octubre de 2026 (mediodía) - Primera ventana JavaFX y repositorio del cliente
+
+- **Hecho:** `Main.java` (clase que extiende `Application`) abre una ventana vacía con `./mvnw clean javafx:run`. Queda así verificado que JavaFX 25.0.5, `javafx-maven-plugin` 0.0.8 y el JDK 25 funcionan juntos (la comprobación pendiente de la entrada anterior queda cerrada).
+- **Decisión:** se crea `Main` antes que ninguna pantalla para separar los errores de configuración de los de código: si la ventana mínima abre, cualquier fallo posterior será de nuestro código.
+- **Git:** repositorio propio `facturacion-cliente` en GitHub (público, creado vacío, sin README, para que el primer push no choque con el historial local). Se comprueba con `git status` que `target/` queda fuera del commit.
+
+## 26 de octubre de 2026 (tarde) - Login del cliente JavaFX funcionando
+
+- **Hecho:** clases `Session` (token y usuario en memoria), `ApiException` (código HTTP + mensaje), `ApiClient` (con `login`), `login.fxml` y `LoginController`. `Main` carga `login.fxml` con `FXMLLoader`.
+- **Decisión:** `Session` es una clase estática que guarda el token solo en memoria, nunca en disco. Al cerrar la aplicación se pierde y hay que volver a iniciar sesión: es lo más seguro y lo más sencillo para este proyecto.
+- **Decisión (RNF-10):** la llamada a la API se hace dentro de un `javafx.concurrent.Task`, en un hilo secundario. Si se hiciera en el hilo de la interfaz, la ventana se congelaría mientras espera la respuesta. `setOnSucceeded` y `setOnFailed` vuelven al hilo de la interfaz, que es el único que puede modificar la ventana. El hilo es `daemon` para no impedir que el programa termine al cerrar.
+- **Decisión:** `ApiClient` convierte cualquier error en `ApiException`. Si la API responde con código 400 o superior, usa el mensaje del `ProblemDetail` (el mapa `errors` si hay validación, `detail` si no). Si no hay conexión, usa código 0 y el mensaje "Cannot connect to the server". Así los controladores solo capturan un tipo de excepción.
+- **Prueba manual (usuario `demo`):** campos vacíos -> "Enter username and password"; contraseña incorrecta -> mensaje de credenciales inválidas; credenciales correctas -> "Logged in as demo"; API apagada -> "Cannot connect to the server". Los cuatro casos funcionan.
+- **Pendiente:** el mensaje "Logged in as" es provisional; se sustituirá por el cambio a la pantalla de clientes.
