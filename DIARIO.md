@@ -159,3 +159,12 @@
 - **Decisión:** `login` busca al usuario y compara la contraseña con `passwordEncoder.matches`, que lee el hash y su sal. Si el usuario no existe o la contraseña no coincide, lanza la misma `InvalidCredentialsException` con el mismo mensaje, de forma que no se revela cuál de las dos falló (RNF-04). Es una transacción de solo lectura (`readOnly = true`).
 - **Observación:** `existsByUsername` es la comprobación que da un mensaje claro, pero la garantía real frente a dos registros simultáneos con el mismo nombre es la restricción `unique` de la columna `username` en la base de datos.
 - **Comprobación:** `AuthService.class` aparece compilado en `target/classes/com/facturacion/api/service/`. Todavía no se ha ejercitado el servicio: las pruebas unitarias son el siguiente paso.
+
+
+## 26 de octubre de 2026 (mañana) - Pruebas unitarias de AuthService
+
+- **Decisión:** `AuthService` se prueba con JUnit 5 y Mockito, sustituyendo `UserRepository` por un doble (`@Mock`) para no necesitar base de datos. El cifrado BCrypt y el `JwtService` son los reales, de modo que se comprueba de verdad que la contraseña se guarda cifrada y que el token generado es válido. Las claves del test no son secretas.
+- **Pruebas:** registro correcto (la contraseña guardada no es el texto original pero BCrypt reconoce el original contra ese hash), registro con usuario repetido (lanza la excepción y no llega a guardar nada), login correcto (devuelve un token válido que contiene el usuario), login con contraseña errónea, login con usuario inexistente y comprobación de que ambos fallos producen exactamente el mismo mensaje (RNF-04).
+- **Problema:** `./mvnw clean test` terminó en `BUILD FAILURE` con 56 errores de compilación (`package org.junit.jupiter.api does not exist`, `package org.mockito does not exist`) que parecían un problema de dependencias.
+- **Causa:** el archivo `AuthServiceTest.java` se había creado en `src/main/java/` en lugar de `src/test/java/`. El código de `main` no tiene JUnit ni Mockito en su classpath, y además un archivo de pruebas en `main` rompe la compilación de toda la aplicación. Es la tercera vez que un archivo acaba en una ubicación que no corresponde (antes `security/` en la raíz y `JwtServiceTest` fuera de su subcarpeta).
+- **Solución:** mover el archivo a `src/test/java/com/facturacion/api/service/`. **Lección:** antes de crear cada archivo hay que comprobar que la ruta empieza por `src/main/java` (código de la aplicación) o `src/test/java` (pruebas), y que las carpetas siguientes coinciden con la línea `package`.
