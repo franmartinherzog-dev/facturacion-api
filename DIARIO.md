@@ -399,3 +399,21 @@
 - **Comprobación:** las pruebas unitarias no comparan el texto de ningún mensaje (la de credenciales compara el mensaje de dos excepciones entre sí), así que no hizo falta modificarlas; se ejecutó `./mvnw clean test` y pasan.
 - **Problema:** los errores de validación automáticos llegaban al usuario sin el nombre del campo ("el tamaño debe estar entre 8 y 72"). **Causa:** el cliente mostraba solo los valores del mapa `errors` de la API. **Solución:** `ApiClient.errorMessage` muestra ahora "campo: mensaje", y `fieldLabel` traduce el nombre interno del campo (`taxId`, `companyName`...) a su etiqueta visible (NIF/CIF, Razón social...).
 - **Memoria:** redactados el Resumen (382 palabras, dentro de las 300-500 que pide la guía) y el Abstract en inglés (333 palabras), con 5 palabras clave.
+
+## 26 de octubre de 2026 (tarde) - Diagramas de la memoria (figuras 7 a 10)
+
+- **Hecho:** generados los tres diagramas obligatorios de la guía a partir del código real, y guardados como imágenes en `Proyecto Intermodular/figuras/`: `fig7-er.png` (entidad-relación), `fig8-casos-de-uso.png`, `fig9-clases-dominio.png` y `fig10-clases-capas.png`.
+- **Decisión:** los diagramas se generan desde texto (Mermaid para el entidad-relación y el de dominio; Graphviz para casos de uso y capas) en lugar de dibujarlos a mano. Así los atributos y nombres salen de las entidades reales y no hay discrepancias con el código, y regenerarlos cuando cambie algo cuesta segundos.
+- **Decisión:** en el de casos de uso, CU-04 «include» CU-05 (crear una factura incluye siempre calcular impuestos, y lo ejecuta el sistema) y CU-06 «extend» CU-07 (descargar el PDF es una extensión opcional del histórico). La flecha de «extend» va del caso que extiende al caso base, como establece UML.
+- **Problema:** la primera versión del entidad-relación salía muy alta (1056x5190 px) y no cabía en una página; se resolvió con `direction LR`. En el de capas, Mermaid cruzaba las flechas y una pasaba por encima de otro recuadro; se rehízo con Graphviz fijando las filas de cada capa.
+- **Hallazgo:** el texto del apartado 7.1.4 de la memoria atribuía un atributo `email` al usuario que no existe en la entidad `User`. Corregido en la memoria.
+- **Pendiente:** las figuras 9 y 10 incluyen clases de facturas y PDF que aún no están implementadas (T14 y T15); si alguna se queda fuera de la entrega final, hay que actualizar los diagramas.
+
+## 26 de octubre de 2026 (tarde) - Memoria en Markdown y capturas del cliente
+
+- **Decisión:** la memoria pasa de `memoria.pages` a `memoria.md` como **única versión viva**. Motivos: se versiona bien (texto plano), se puede revisar y editar directamente sin copiar y pegar, y al final se convierte a Word o PDF con Pandoc aplicando la plantilla de la guía. `memoria.pages` se conserva solo como copia de seguridad. Pérdidas asumidas: índice con números de página, portada y cabeceras (se regeneran al final) y algunas viñetas de lista.
+- **Problema:** Pages exportó los árboles de carpetas con la sangría comprimida (el árbol perdía su estructura). **Solución:** se reconstruyeron a mano como bloques de código a partir de los árboles ya revisados.
+- **Problema:** una corrección automática de tildes convirtió `Session` (nombre de clase) en `Sessión`. **Solución:** revertido y comprobado que no quedan más; **lección:** las correcciones automáticas de texto deben excluir los identificadores de código.
+- **Problema:** en la captura del listado de clientes salía una columna vacía a la derecha y los emails se cortaban. **Causa:** la tabla usaba la política de columnas por defecto, que respeta el ancho preferido de cada columna. **Solución:** `CONSTRAINED_RESIZE_POLICY` en `clients.fxml`, que reparte todo el ancho entre las columnas.
+- **Hecho:** capturas de las figuras 2 (login) y 3 (listado de clientes) con cinco clientes ficticios (nombres inventados, dominios `.example`, NIF con formato válido) insertadas en la memoria.
+- **Pendiente:** figura 1 (wireframes), figuras 4 a 6 (cuando existan facturas y PDF), tabla 6.4 (horas reales), y la lectura final de estilo.
