@@ -122,3 +122,9 @@
 - **Decisión:** la contraseña se limita a un máximo de 72 caracteres porque BCrypt ignora todo lo que supere los 72 bytes, de modo que dos contraseñas largas que solo se diferenciaran al final producirían el mismo hash.
 - **Decisión:** el NIF/CIF se valida solo por formato (DNI, NIE o CIF) mediante expresión regular, sin comprobar la letra o dígito de control. Es suficiente para el prototipo; la validación completa queda como posible mejora futura.
 - **Comprobación:** `./mvnw clean compile` compila 9 archivos fuente y termina con `BUILD SUCCESS`.
+
+
+## 26 de octubre de 2026 - DTO de login
+
+- **Decisión:** `LoginRequest` solo valida que `username` y `password` no estén vacíos (`@NotBlank`), sin las reglas de longitud o formato del registro. En el registro se validan los datos porque se están creando; en el login la comprobación real es la comparación con el hash almacenado. Aplicar aquí reglas de longitud haría que un mensaje de error como "contraseña demasiado corta" revelara cómo son las contraseñas válidas; con solo `@NotBlank`, cualquier intento fallido recibe el mismo mensaje genérico, en línea con el RNF-04 (los errores de inicio de sesión no revelan si el usuario existe).
+- **Comprobación:** `LoginRequest.class` aparece compilado en `target/classes/com/facturacion/api/dto/`.
