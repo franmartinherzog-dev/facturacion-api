@@ -372,3 +372,13 @@
 - **Decisión:** la contraseña no se recorta con `trim()` (un espacio es un carácter válido de contraseña); el resto de campos sí.
 - **Problema:** `Map.of` lanza `NullPointerException` si algún valor es `null`, y `address` es opcional en la API. **Solución:** en `register` se envía `""` cuando la dirección es `null`.
 - **Prueba manual:** campos vacíos -> aviso; NIF `123` -> "Invalid NIF/CIF format" de la API; registro correcto -> vuelve al login; el nuevo usuario entra y ve la tabla vacía (cada usuario solo ve sus clientes); repetir el usuario -> error de usuario existente; "Back to login" funciona.
+
+## 26 de octubre de 2026 (tarde) - Gestión de clientes completa en el cliente JavaFX
+
+- **Hecho:** `ApiClient.createClient`, `updateClient`, `deleteClient` (con `clientJson` para no repetir el cuerpo), `client-form.fxml`, `ClientFormController` y los botones New / Edit / Delete en la pantalla de clientes.
+- **Decisión:** un único formulario sirve para crear y editar. La lista le pasa el cliente a editar con `setClient` (o `null` si es nuevo) y el formulario decide si llama a `createClient` o a `updateClient`. Así hay una sola pantalla que mantener.
+- **Decisión:** el formulario se abre como ventana modal (`Modality.APPLICATION_MODAL`) con `showAndWait`: mientras está abierto no se puede tocar la lista, y al cerrarse se consulta `isSaved()` para recargar la tabla solo si hubo cambios (se conserva el texto del buscador).
+- **Decisión:** el borrado pide confirmación con un `Alert`, porque no se puede deshacer.
+- **Decisión:** los campos opcionales (dirección, email, teléfono) se envían como `""` cuando están vacíos, porque `Map.of` no admite `null`; la API acepta la cadena vacía en `@Email`.
+- **Prueba manual (usuario `demo`):** formulario vacío -> "Name and tax ID are required"; NIF `123` -> "Invalid NIF/CIF format" y la ventana sigue abierta; alta correcta -> aparece en la tabla; edición -> el cambio se ve; Edit/Delete sin selección -> "Select a client first"; Delete + Cancel no borra; Delete + OK borra; Escape cierra el formulario sin guardar.
+- **Estado:** la aplicación cumple lo exigido para el seguimiento del 1 de noviembre (registro, login y gestión de clientes). Pendiente de pulir: CSS (los `styleClass` `title` y `error` aún no tienen estilo) y la memoria hasta el apartado 7.1.
