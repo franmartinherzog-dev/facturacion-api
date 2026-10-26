@@ -321,3 +321,18 @@
 - **Pruebas (10):** creación (el propietario del cliente es el usuario del token), listado sin búsqueda, listado con búsqueda (usa el texto sin espacios sobrantes), consulta de un cliente propio, consulta de un cliente ajeno (404), edición de un cliente propio, edición de un cliente ajeno (404), borrado de un cliente propio, borrado de un cliente ajeno (404 y no se ejecuta ningún borrado) y usuario desconocido.
 - **Decisión:** las pruebas de cliente ajeno verifican con `verify` que la búsqueda se hace siempre con `findByIdAndUser` y el usuario autenticado. Si en el futuro alguien cambiara el servicio para buscar solo por identificador, estas pruebas fallarían, con lo que el aislamiento queda protegido frente a regresiones y no solo comprobado una vez.
 - **Comprobación:** `./mvnw clean test -Dtest=ClientServiceTest` ejecuta las 10 pruebas sin fallos ni errores (informe de Surefire: `Tests run: 10, Failures: 0, Errors: 0`).
+
+
+## 26 de octubre de 2026 (mediodía) - Versiones del cliente JavaFX
+
+- **Decisión:** el cliente usará JavaFX **25.0.5** (último parche de la línea 25, publicado el 20 de octubre de 2026) y Jackson **3.1.5**, la misma versión que gestiona Spring Boot 4.1.1 en la API (comprobado con `./mvnw dependency:list -Dincludes=tools.jackson.core`). Así cliente y API interpretan el JSON de forma idéntica, como se plantea en el apartado 7.1.1 de la memoria.
+- **Decisión:** se mantiene la línea 25, y no la 27 (publicada el 15 de septiembre de 2026), porque el criterio del proyecto es la estabilidad y la compatibilidad con el JDK 25, no la novedad. Dentro de una línea se usa siempre el último parche, que solo corrige errores y fallos de seguridad sin cambiar la API.
+- **Observación / pendiente para la memoria:** el listado de Maven Central muestra que JavaFX 21.0.13 y 17.0.21 se publicaron el 20 de octubre de 2026, es decir, después de septiembre de 2026, fecha en la que el apartado 7.1.1 afirma que JavaFX 21 deja de recibir actualizaciones gratuitas. Hay que **verificar las fechas de fin de soporte (21 y 25) en la página oficial de soporte de JavaFX** y corregir ese argumento antes de la entrega final.
+
+
+## 26 de octubre de 2026 (mediodía) - Proyecto base del cliente JavaFX
+
+- **Decisión:** el cliente es un proyecto Maven independiente, `facturacion-cliente`, junto a `facturacion-api` y con su propio repositorio, como describe el apartado 5.1.2. Se reutiliza el Maven Wrapper de la API (carpeta `.mvn`, `mvnw` y `mvnw.cmd`) y su `.gitignore`, y el paquete base `com.facturacion.cliente` se crea correctamente desde el principio, evitando el problema que hubo con el paquete de la API.
+- **Decisión:** `pom.xml` con `javafx-controls` y `javafx-fxml` 25.0.5 y `jackson-databind` 3.1.5 (versiones en `<properties>`, un solo sitio para cambiarlas). No se añade ninguna librería HTTP: se usará el `java.net.http.HttpClient` del JDK, según el apartado 7.1.1. Se fija `maven-compiler-plugin` 3.15.0, la misma versión que usa la API.
+- **Comprobación:** `./mvnw clean compile` termina con `BUILD SUCCESS` y descarga JavaFX y Jackson.
+- **Pendiente de comprobar:** `compile` no usa `javafx-maven-plugin` 0.0.8, así que esa versión no está verificada hasta ejecutar `./mvnw javafx:run`.
