@@ -195,3 +195,30 @@
 - **Decisión:** las peticiones sin credenciales a rutas protegidas responden 401 mediante `HttpStatusEntryPoint`. Sin ello Spring devolvería 403, que significa otra cosa (autenticado pero sin permiso).
 - **Observación:** hasta crear `JwtAuthFilter`, las rutas protegidas responderán siempre 401, incluso con un token válido, porque aún nadie lee el token de la cabecera.
 - **Comprobación:** `SecurityConfig.class` se ha recompilado con la nueva configuración.
+
+
+## 26 de octubre de 2026 (mañana) - Primer arranque con la seguridad completa
+
+- **Problema:** al arrancar la API por primera vez con `AuthController` y `SecurityConfig`, falló con `BeanCreationException ... JwtService ... Constructor threw exception`, y la causa final, al final de la traza, era `DecodingException: Illegal base64 character: '-'`.
+- **Causa:** la variable de entorno `JWT_SECRET` se había definido con un texto de ejemplo (`tu-clave-generada`) en lugar de una clave real. Los guiones no son caracteres válidos en Base64, que es el formato en que `JwtService` espera la clave. Al abrir una terminal nueva la variable se había perdido y hubo que volver a definirla.
+- **Solución:** generar una clave nueva con `openssl rand -base64 48` y exportarla en esa terminal antes de arrancar.
+- **Observación:** el comportamiento es el deseado: la API se niega a arrancar con una clave inválida en lugar de funcionar con una insegura. Para el manual de instalación (Anexo I) conviene documentar que es necesario definir `JWT_SECRET` con una clave en Base64 de al menos 256 bits antes de arrancar, y que la variable solo vale para la terminal en la que se define. **Lección:** al leer una traza larga de Spring, la causa real está en el último bloque `Caused by`, no en el primer mensaje.
+
+
+## 26 de octubre de 2026 (mañana) - Primera prueba real: registro
+
+- **Prueba:** `POST /api/auth/register` con `curl` sobre la API en marcha, con los datos de un usuario de prueba (`fran`). Respuesta: `HTTP/1.1 201`, sin cuerpo.
+- **Resultado:** la petición cruza la configuración de seguridad (ruta pública), supera las validaciones de `RegisterRequest`, y `AuthService` cifra la contraseña y guarda el usuario. Es la primera vez que se ejercita toda la cadena (controlador, servicio, repositorio y base de datos) con una petición HTTP real.
+- **Observación:** la respuesta incluye cabeceras de seguridad que Spring Security añade por defecto: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Cache-Control: no-cache, no-store` y `X-XSS-Protection: 0`. Sirven como evidencia para el apartado de seguridad de la memoria.
+
+- **Prueba:** `POST /api/auth/login` con las credenciales del usuario registrado. Respuesta: `HTTP/1.1 200` y un cuerpo JSON con el token JWT y el nombre de usuario (`{"token":"eyJ...","username":"fran"}`). La respuesta no incluye la contraseña, su hash ni el identificador interno, tal como se diseñó en `AuthResponse`.
+- **Resultado:** queda demostrado de extremo a extremo el flujo de autenticación: registro, login y emisión de token.
+
+
+## 26 de octubre de 2026 (mañana) - Pruebas reales de los errores de autenticación
+
+- **Pruebas:** tres peticiones con `curl` contra la API en marcha. (1) Login con contraseña incorrecta: `401` con `"Invalid username or password"`. (2) Registro de un usuario ya existente: `409` con `"Username already in use"`. (3) Registro con datos inválidos (contraseña de 3 caracteres y NIF `XX`): `400` con `"Validation failed"` y un objeto `errors` que nombra los campos `taxId` y `password`.
+- **Resultado:** `GlobalExceptionHandler` traduce cada caso al código HTTP previsto, con el formato estándar `application/problem+json`. El mensaje del 401 es el mismo se equivoque el usuario o la contraseña (RNF-04) y en el 400 no se refleja el valor rechazado: ni la contraseña ni el NIF aparecen en la respuesta.
+- **Observación:** los mensajes de validación salen en idiomas distintos: `taxId` en inglés (escrito explícitamente en la anotación) y `password` en español (mensaje por defecto de Hibernate Validator, que usa el idioma del sistema donde se ejecuta la API). Se resuelve fijando el idioma de la aplicación para que la respuesta no dependa de la máquina.
+- **Solución:** se fija el idioma con `spring.web.locale=en` y `spring.web.locale-resolver=fixed`, de modo que la API genera siempre los mensajes en inglés, con independencia de la configuración regional del equipo o de la cabecera `Accept-Language` del cliente. Así el comportamiento es determinista en cualquier despliegue.
+- **Comprobación:** repetida la petición de datos inválidos, ambos mensajes salen en inglés: `"taxId":"Invalid NIF/CIF format"` y `"password":"size must be between 8 and 72"`.
