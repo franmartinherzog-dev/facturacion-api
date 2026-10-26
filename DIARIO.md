@@ -177,3 +177,21 @@
 - **Decisión:** los parámetros se anotan con `@Valid`, que es lo que activa por fin las validaciones declaradas en los DTOs (`@NotBlank`, `@Size`, `@Pattern`): si un campo no las cumple, Spring rechaza la petición antes de que llegue al servicio. El registro responde `201 Created` con `@ResponseStatus`, el código adecuado cuando se crea un recurso.
 - **Observación:** mientras no se configure `SecurityConfig`, Spring Security aplica su configuración por defecto, que exige autenticación en todas las rutas, por lo que estos endpoints responderían 401. Se resolverá al declarar las rutas públicas y el filtro JWT.
 - **Comprobación:** `AuthController.class` aparece compilado en `target/classes/com/facturacion/api/controller/`.
+
+
+## 26 de octubre de 2026 (mañana) - GlobalExceptionHandler
+
+- **Decisión:** `GlobalExceptionHandler` (`@RestControllerAdvice`) intercepta las excepciones lanzadas por cualquier controlador y las convierte en respuestas HTTP, de modo que controladores y servicios no necesitan `try/catch`. Traduce `UsernameAlreadyExistsException` a 409 (Conflict), `InvalidCredentialsException` a 401 (Unauthorized) y los fallos de `@Valid` a 400 (Bad Request). Los códigos 403 y 404 se añadirán cuando existan clientes y facturas.
+- **Decisión:** se usa `ProblemDetail`, el formato estándar de errores HTTP (RFC 9457) que ya incluye Spring, en lugar de una clase de error propia: devuelve un JSON uniforme con `status`, `title` y `detail` sin código adicional que mantener.
+- **Decisión:** en los errores de validación se devuelve un mapa campo → mensaje (por ejemplo `taxId: Invalid NIF/CIF format`) para que la interfaz pueda marcar el campo concreto. Solo se devuelven el nombre del campo y el mensaje de la regla, nunca el valor rechazado, de modo que una contraseña inválida no se refleja en la respuesta ni acaba en un log.
+- **Comprobación:** `GlobalExceptionHandler.class` aparece compilado en `target/classes/com/facturacion/api/exception/`.
+
+
+## 26 de octubre de 2026 (mañana) - Reglas de acceso en SecurityConfig
+
+- **Decisión:** `SecurityConfig` declara un `SecurityFilterChain` con las reglas de acceso: `/api/auth/**` es público (registro y login deben poder usarse sin token, porque es como se consigue uno) y cualquier otra ruta exige estar autenticado.
+- **Decisión:** se desactiva CSRF, que protege a las aplicaciones que se autentican con cookies de sesión que el navegador envía automáticamente. Esta API se autentica con un token en una cabecera que el cliente adjunta explícitamente, por lo que ese ataque no aplica; mantenerlo activado bloquearía todos los `POST`.
+- **Decisión:** se desactivan `httpBasic` y `formLogin` (el formulario de login por defecto de Spring Security que aparecía en `localhost:8080`), porque el único método de acceso es el JWT. La política de sesión es `STATELESS`: el servidor no guarda sesión y cada petición se autentica por sí sola con su token (apartado 5.1.3).
+- **Decisión:** las peticiones sin credenciales a rutas protegidas responden 401 mediante `HttpStatusEntryPoint`. Sin ello Spring devolvería 403, que significa otra cosa (autenticado pero sin permiso).
+- **Observación:** hasta crear `JwtAuthFilter`, las rutas protegidas responderán siempre 401, incluso con un token válido, porque aún nadie lee el token de la cabecera.
+- **Comprobación:** `SecurityConfig.class` se ha recompilado con la nueva configuración.
