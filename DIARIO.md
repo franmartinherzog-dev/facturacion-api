@@ -135,3 +135,11 @@
 - **Decisión:** `AuthResponse` (`token`, `username`) es el DTO de salida del registro y del login. Devuelve el token JWT, que el cliente guardará en memoria y enviará en la cabecera `Authorization`, y el nombre de usuario para mostrarlo en la interfaz sin otra petición. No incluye ni la contraseña, ni su hash, ni el identificador interno: es la ventaja de un DTO de salida frente a devolver la entidad `User`.
 - **Decisión:** no lleva anotaciones de validación, porque estas se aplican a los datos de entrada, en los que se debe desconfiar; la respuesta la construye el propio servidor.
 - **Comprobación:** `AuthResponse.class` aparece compilado en `target/classes/com/facturacion/api/dto/`.
+
+
+## 26 de octubre de 2026 (mañana) - Cifrado de contraseñas
+
+- **Decisión:** `SecurityConfig` (paquete `security`) declara un bean `PasswordEncoder` basado en `BCryptPasswordEncoder`. Spring lo inyectará en `AuthService` a través de la interfaz `PasswordEncoder`, de modo que el servicio no depende del algoritmo concreto y cambiarlo solo exigiría tocar esta clase.
+- **Decisión:** se elige BCrypt porque guarda un hash con sal aleatoria incluida (dos usuarios con la misma contraseña obtienen hashes distintos) y es deliberadamente lento, lo que frena los ataques de fuerza bruta (RNF de seguridad).
+- **Observación:** `SecurityConfig` empieza solo con el cifrado de contraseñas. Más adelante recibirá las reglas de qué rutas son públicas y el filtro JWT; mientras tanto Spring Security sigue con su configuración por defecto.
+- **Comprobación:** `SecurityConfig.class` aparece compilado en `target/classes/com/facturacion/api/security/`.
