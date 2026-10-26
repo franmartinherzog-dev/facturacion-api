@@ -13,7 +13,7 @@ public record ClientRequest(
 
         @NotBlank
         @Pattern(regexp = "^([0-9]{8}[A-Za-z]|[XYZxyz][0-9]{7}[A-Za-z]|[A-Za-z][0-9]{7}[0-9A-Za-z])$",
-                 message = "Invalid NIF/CIF format")
+                 message = "Formato de NIF/CIF no válido")
         String taxId,
 
         @Size(max = 255)

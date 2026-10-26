@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
                 .forEach(error -> errors.putIfAbsent(error.getField(), error.getDefaultMessage()));
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.BAD_REQUEST, "Validation failed");
+                HttpStatus.BAD_REQUEST, "Datos no válidos");
         problem.setProperty("errors", errors);
         return problem;
     }
