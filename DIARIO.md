@@ -143,3 +143,19 @@
 - **Decisión:** se elige BCrypt porque guarda un hash con sal aleatoria incluida (dos usuarios con la misma contraseña obtienen hashes distintos) y es deliberadamente lento, lo que frena los ataques de fuerza bruta (RNF de seguridad).
 - **Observación:** `SecurityConfig` empieza solo con el cifrado de contraseñas. Más adelante recibirá las reglas de qué rutas son públicas y el filtro JWT; mientras tanto Spring Security sigue con su configuración por defecto.
 - **Comprobación:** `SecurityConfig.class` aparece compilado en `target/classes/com/facturacion/api/security/`.
+
+
+## 26 de octubre de 2026 (mañana) - Excepciones de autenticación
+
+- **Decisión:** se crean dos excepciones propias, `UsernameAlreadyExistsException` e `InvalidCredentialsException`, ambas `RuntimeException` para no obligar a declarar `throws` en cada método. Cada fallo tiene un significado de negocio distinto, y el servicio solo dice qué ha ocurrido sin saber nada de HTTP; más adelante `GlobalExceptionHandler` las traducirá a los códigos 409 (conflicto) y 401 (no autenticado).
+- **Decisión:** el mensaje de `InvalidCredentialsException` es fijo y genérico ("Invalid username or password"), sin distinguir si falló el usuario o la contraseña. Si se indicara que el usuario no existe, un atacante podría descubrir qué usuarios están registrados (RNF-04).
+- **Comprobación:** ambas clases aparecen compiladas en `target/classes/com/facturacion/api/exception/`.
+
+
+## 26 de octubre de 2026 (mañana) - AuthService
+
+- **Decisión:** `AuthService` recibe por constructor `UserRepository`, `PasswordEncoder` y `JwtService`, que Spring inyecta. Depende de la interfaz `PasswordEncoder`, no de BCrypt, lo que permite cambiar de algoritmo sin tocar el servicio.
+- **Decisión:** `register` comprueba que el nombre de usuario no exista, cifra la contraseña **antes** de construir la entidad `User` (el texto en claro nunca llega a la entidad ni a la base de datos) y la guarda. No devuelve token: tras registrarse, el usuario inicia sesión, como describe el apartado 5.1.2 de la memoria. Se ejecuta en una transacción para que sea todo o nada.
+- **Decisión:** `login` busca al usuario y compara la contraseña con `passwordEncoder.matches`, que lee el hash y su sal. Si el usuario no existe o la contraseña no coincide, lanza la misma `InvalidCredentialsException` con el mismo mensaje, de forma que no se revela cuál de las dos falló (RNF-04). Es una transacción de solo lectura (`readOnly = true`).
+- **Observación:** `existsByUsername` es la comprobación que da un mensaje claro, pero la garantía real frente a dos registros simultáneos con el mismo nombre es la restricción `unique` de la columna `username` en la base de datos.
+- **Comprobación:** `AuthService.class` aparece compilado en `target/classes/com/facturacion/api/service/`. Todavía no se ha ejercitado el servicio: las pruebas unitarias son el siguiente paso.
