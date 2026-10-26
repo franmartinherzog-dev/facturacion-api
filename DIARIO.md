@@ -364,3 +364,11 @@
 - **Problema 3:** `clients.fxml` no aparecía en `target/classes` (Maven copiaba "1 resource" en vez de 2). **Causa:** el archivo estaba en `src/main/java/...` y no en `src/main/resources/...`; Maven solo copia a `target/classes` lo que hay en `resources`. **Solución:** moverlo con `mv`; tras ello copia "2 resources". **Lección:** los FXML siempre van en `resources`; comprobar con `ls target/classes/...`.
 - **Prueba manual:** con la API en marcha y el usuario `demo`, el login lleva a la pantalla de clientes (tabla vacía al principio); tras crear un cliente con `curl`, aparece "Acme SL"; el buscador filtra (`acm` lo muestra, `zzz` deja la tabla vacía); "Log out" vuelve al login.
 - **Pendiente para el seguimiento del 1 de noviembre:** pantalla de registro, y crear / editar / borrar clientes desde la interfaz.
+
+## 26 de octubre de 2026 (tarde) - Pantalla de registro del cliente JavaFX
+
+- **Hecho:** `ApiClient.register`, `register.fxml`, `RegisterController`, botón "Create account" en el login y "Back to login" en el registro.
+- **Decisión:** el cliente solo comprueba que los cuatro campos obligatorios no estén vacíos; las demás reglas (longitudes, formato de NIF/CIF) las valida la API y el cliente muestra su mensaje. Así no se duplica la validación en dos sitios que podrían quedar desincronizados.
+- **Decisión:** la contraseña no se recorta con `trim()` (un espacio es un carácter válido de contraseña); el resto de campos sí.
+- **Problema:** `Map.of` lanza `NullPointerException` si algún valor es `null`, y `address` es opcional en la API. **Solución:** en `register` se envía `""` cuando la dirección es `null`.
+- **Prueba manual:** campos vacíos -> aviso; NIF `123` -> "Invalid NIF/CIF format" de la API; registro correcto -> vuelve al login; el nuevo usuario entra y ve la tabla vacía (cada usuario solo ve sus clientes); repetir el usuario -> error de usuario existente; "Back to login" funciona.
