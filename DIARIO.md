@@ -270,3 +270,22 @@
 - **Decisión:** se crea `ClientNotFoundException` y `GlobalExceptionHandler` la traduce a `404 Not Found`.
 - **Decisión:** un cliente que existe pero pertenece a otro usuario también produce este 404, no un 403. Como `ClientRepository.findByIdAndUser` busca por identificador y propietario a la vez, para el servicio ese cliente simplemente no existe. Así un usuario no puede descubrir qué identificadores pertenecen a otros: un 403 le confirmaría que existe. Es la misma lógica de no revelar información que se aplica en el login (RNF-04). Los casos de uso del apartado 5.2.3 hablan de un error 404 o 403 para recursos ajenos; se elige el 404 por esta razón.
 - **Comprobación:** `ClientNotFoundException.class` y `GlobalExceptionHandler.class` aparecen compilados en `target/classes/com/facturacion/api/exception/`.
+
+
+## 26 de octubre de 2026 (mañana) - ClientService
+
+- **Decisión:** todos los métodos de `ClientService` reciben el nombre de usuario extraído del token, nunca un usuario ni un identificador de propietario enviado por el cliente de la API. Es la pieza que garantiza el aislamiento de datos entre usuarios.
+- **Decisión:** consultar, editar y borrar pasan por un único método privado, `findOwnedClient`, que busca por identificador y propietario y lanza `ClientNotFoundException` si no lo encuentra. Al estar centralizada la comprobación, no se puede olvidar en uno de los métodos.
+- **Decisión:** `update` no llama a `save`: el método es transaccional y la entidad está gestionada por Hibernate, que detecta los cambios hechos con los setters y los guarda al terminar la transacción.
+- **Decisión:** el listado admite un texto de búsqueda opcional que filtra por nombre sin distinguir mayúsculas (buscador de la tabla, apartado 5.2.1); si no llega texto, devuelve todos los clientes del usuario.
+- **Decisión de alcance:** la regla de que no se puede dar de baja un cliente con facturas emitidas (CU-03) se aplaza hasta la tarea T14, cuando existan el repositorio y el servicio de facturas. Es una tarea de prioridad media, de las que el apartado 6.4 prevé recortar primero si hay desvíos. **Pendiente:** implementar esta regla en T14 y probarla.
+- **Comprobación:** `ClientService.class` aparece compilado en `target/classes/com/facturacion/api/service/`.
+
+
+## 26 de octubre de 2026 (mediodía) - ClientController
+
+- **Decisión:** `ClientController` expone los cinco endpoints de gestión de clientes del apartado 5.1.2: listar (con `?search=` opcional), consultar, crear, modificar y borrar, bajo `/api/clients`. Crear responde `201` con el cliente creado (incluye el identificador asignado) y borrar responde `204` sin cuerpo.
+- **Decisión:** el controlador obtiene el usuario de `Principal`, que Spring rellena con la identidad que `JwtAuthFilter` dejó en el `SecurityContext`; `principal.getName()` devuelve el nombre de usuario del token. Es el enlace entre la autenticación y los datos: el propietario nunca viaja en la petición.
+- **Decisión:** la ruta cuelga de `/api/clients`, por lo que cae bajo la regla `anyRequest().authenticated()` y exige token sin necesidad de modificar `SecurityConfig`.
+- **Decisión de nombres:** la memoria define los endpoints como `/api/clientes` y `/api/facturas`; se usa `/api/clients` para mantener el código en inglés. **Pendiente:** actualizar los endpoints en el apartado 5.1.2 de la memoria al unificar los nombres de clases y rutas.
+- **Comprobación:** `ClientController.class` aparece compilado en `target/classes/com/facturacion/api/controller/`.
