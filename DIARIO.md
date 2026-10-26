@@ -289,3 +289,27 @@
 - **Decisión:** la ruta cuelga de `/api/clients`, por lo que cae bajo la regla `anyRequest().authenticated()` y exige token sin necesidad de modificar `SecurityConfig`.
 - **Decisión de nombres:** la memoria define los endpoints como `/api/clientes` y `/api/facturas`; se usa `/api/clients` para mantener el código en inglés. **Pendiente:** actualizar los endpoints en el apartado 5.1.2 de la memoria al unificar los nombres de clases y rutas.
 - **Comprobación:** `ClientController.class` aparece compilado en `target/classes/com/facturacion/api/controller/`.
+
+
+## 26 de octubre de 2026 (mediodía) - Variable de entorno sin exportar
+
+- **Problema:** al arrancar la API para probar la gestión de clientes, falló con `Could not resolve placeholder 'JWT_SECRET' in value "${JWT_SECRET}" <-- "${app.jwt.secret}"`, situado en el último bloque `Caused by` de la traza. La variable estaba definida en la terminal (`echo ${#JWT_SECRET}` mostraba su longitud) pero la API no la veía.
+- **Causa:** la variable se definió con `JWT_SECRET="..."` sin la palabra `export`. Sin `export`, la variable existe solo dentro del shell y no se transmite a los programas que se lanzan desde él (Maven y, con él, la API). Antes de eso, al abrir una terminal nueva, la variable de la sesión anterior se había perdido.
+- **Solución:** `export JWT_SECRET="$(openssl rand -base64 48)"`, que genera la clave y la exporta en un solo paso sin mostrarla en pantalla. Además se descartó la clave anterior, que había quedado visible al copiarla.
+- **Observación para el Anexo I (manual de instalación):** hay que indicar que `JWT_SECRET` debe definirse con `export` en la misma terminal en que se arranca la API, que debe ser una clave Base64 de al menos 256 bits, y que se pierde al cerrar la terminal. Esta vez el diagnóstico fue inmediato gracias a que la API se niega a arrancar sin la clave y el mensaje de error nombra la variable concreta.
+
+
+## 26 de octubre de 2026 (mediodía) - Primera prueba real: crear y listar clientes
+
+- **Prueba:** con el token del usuario `fran`, `POST /api/clients` con los datos de un cliente de prueba y `GET /api/clients`. El listado responde `HTTP/1.1 200` con `[{"id":1,"name":"Cliente Uno SL","taxId":"B76543210","address":"Calle Sol 5","email":"uno@example.com","phone":"600123456"}]`.
+- **Resultado:** la petición atraviesa el filtro JWT, el controlador obtiene el usuario del token, el servicio crea y recupera el cliente asociado a él, y la respuesta contiene solo los campos del DTO `ClientResponse`, sin ningún dato del propietario. El código de estado de la creación no se registró en esta prueba; la existencia del cliente con `id` 1 en el listado confirma que se creó.
+
+
+## 26 de octubre de 2026 (mediodía) - Prueba de aislamiento entre usuarios
+
+- **Prueba:** se registra un segundo usuario (`ana`, 201) y, con su token, se intenta acceder al cliente creado por `fran`: listado (`GET /api/clients`), lectura por identificador (`GET /api/clients/1`) y borrado (`DELETE /api/clients/1`).
+- **Resultado:** el listado de Ana devuelve `[]`, sin el cliente de Fran. La lectura y el borrado devuelven `404` con el cuerpo `{"detail":"Client not found",...}`, idéntico al de un cliente que no existe, de modo que Ana no puede saber ni siquiera que ese identificador pertenece a otro usuario. Queda verificado el requisito de seguridad del apartado 5.2.1 (cada usuario solo ve y modifica sus propios clientes) y la decisión de devolver 404 en lugar de 403.
+- **Comprobación complementaria:** tras el intento de borrado de Ana, `GET /api/clients/1` con el token de Fran sigue devolviendo `200` con el cliente intacto: el 404 no solo respondió igual que si no existiera, sino que además no borró nada.
+- **Prueba:** `PUT /api/clients/1` con el token de Fran cambiando el nombre y el teléfono. Respuesta `200` con los valores nuevos y el mismo `id`; queda verificado que `update` modifica el cliente sin llamar a `save`, gracias a la transacción y a la detección de cambios de Hibernate.
+- **Pruebas:** búsqueda con `?search=renombrado` (minúsculas y parcial): `200` con el cliente, lo que confirma que el filtro no distingue mayúsculas. Búsqueda `?search=zzz`: `200` con `[]`. Borrado por su propietario (`DELETE /api/clients/1`): `204` sin cuerpo. Consulta posterior del mismo cliente: `404`.
+- **Resultado:** con esto queda probado a mano el CRUD completo de clientes (crear, listar, consultar, editar, buscar y borrar) y el aislamiento entre usuarios. Falta cubrirlo con pruebas automáticas, en particular el aislamiento, que es el requisito de seguridad más importante de esta parte. **Pendiente (T14):** impedir el borrado de clientes con facturas emitidas.
