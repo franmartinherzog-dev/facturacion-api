@@ -313,3 +313,11 @@
 - **Prueba:** `PUT /api/clients/1` con el token de Fran cambiando el nombre y el teléfono. Respuesta `200` con los valores nuevos y el mismo `id`; queda verificado que `update` modifica el cliente sin llamar a `save`, gracias a la transacción y a la detección de cambios de Hibernate.
 - **Pruebas:** búsqueda con `?search=renombrado` (minúsculas y parcial): `200` con el cliente, lo que confirma que el filtro no distingue mayúsculas. Búsqueda `?search=zzz`: `200` con `[]`. Borrado por su propietario (`DELETE /api/clients/1`): `204` sin cuerpo. Consulta posterior del mismo cliente: `404`.
 - **Resultado:** con esto queda probado a mano el CRUD completo de clientes (crear, listar, consultar, editar, buscar y borrar) y el aislamiento entre usuarios. Falta cubrirlo con pruebas automáticas, en particular el aislamiento, que es el requisito de seguridad más importante de esta parte. **Pendiente (T14):** impedir el borrado de clientes con facturas emitidas.
+
+
+## 26 de octubre de 2026 (mediodía) - Pruebas unitarias de ClientService
+
+- **Decisión:** `ClientService` se prueba con JUnit 5 y Mockito, sustituyendo `ClientRepository` y `UserRepository` por dobles. El objetivo principal es proteger el aislamiento entre usuarios, el requisito de seguridad más importante de la gestión de clientes, que hasta ahora solo se había comprobado a mano.
+- **Pruebas (10):** creación (el propietario del cliente es el usuario del token), listado sin búsqueda, listado con búsqueda (usa el texto sin espacios sobrantes), consulta de un cliente propio, consulta de un cliente ajeno (404), edición de un cliente propio, edición de un cliente ajeno (404), borrado de un cliente propio, borrado de un cliente ajeno (404 y no se ejecuta ningún borrado) y usuario desconocido.
+- **Decisión:** las pruebas de cliente ajeno verifican con `verify` que la búsqueda se hace siempre con `findByIdAndUser` y el usuario autenticado. Si en el futuro alguien cambiara el servicio para buscar solo por identificador, estas pruebas fallarían, con lo que el aislamiento queda protegido frente a regresiones y no solo comprobado una vez.
+- **Comprobación:** `./mvnw clean test -Dtest=ClientServiceTest` ejecuta las 10 pruebas sin fallos ni errores (informe de Surefire: `Tests run: 10, Failures: 0, Errors: 0`).
