@@ -466,3 +466,9 @@
 - **Problema:** `./mvnw clean test` falló con 28 errores de compilación (`package org.junit.jupiter.api does not exist`). **Causa:** `PdfServiceTest.java` se creó en `src/main/java` en lugar de `src/test/java`; JUnit y Mockito solo están en el classpath de pruebas. **Solución:** moverlo con `mv`. **Lección:** todo fichero `*Test.java` va en `src/test/java`; la ruta de la instrucción debe copiarse entera.
 - **Pruebas automáticas:** 34 pruebas, 0 fallos.
 - **Pendiente:** pantallas de facturas en el cliente JavaFX (formulario con líneas dinámicas y vista previa, histórico, descarga del PDF con `FileChooser`); actualizar la memoria (7.2, 7.3, figuras 4 a 6, Anexo II).
+
+## 27 de octubre de 2026 (tarde) - Memoria 7.3 actualizada con las facturas
+
+- **Hecho:** el apartado 7.3 de `memoria.md` refleja ya la API de facturación: 34 pruebas (22 + 1 de borrado con facturas + 9 de `InvoiceServiceTest` + 2 de `PdfServiceTest`), 14 casos nuevos en la tabla de detalle, 10 pruebas manuales nuevas con `curl` (facturas, errores y PDF), dos problemas nuevos (`JWT_SECRET` en la prueba de arranque y clase de pruebas en `src/main`) y una lista de pruebas pendientes reducida a lo que de verdad falta. También se corrigió la cifra del Anexo I (34).
+- **Decisión:** solo se marcan como «Correcto» las pruebas manuales que se han ejecutado de verdad. El 409 al borrar un cliente con facturas y la numeración concurrente quedan como pendientes porque no se han probado.
+- **Pendiente:** el apartado 5 de la memoria todavía marca como «(pendiente)» las clases e interfaces de facturas de la API (`InvoiceController`, `InvoiceService`, `PdfService`, `InvoiceRepository`, DTOs y la sección de endpoints de facturas); hay que actualizarlo, y también el 7.2 (fase de facturación) y la tabla de problemas. La cifra «22 pruebas» del 7.2 se conserva porque describe cuántas había en esa fase.
