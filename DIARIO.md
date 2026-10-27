@@ -502,3 +502,8 @@
 - **Decisión:** la captura del PDF se recortó al documento (se conserva el original con la ventana del lector en `figuras/fig5-pdf-factura-ventana-original.png`), porque con la ventana completa el texto de la factura quedaba demasiado pequeño en la memoria.
 - **Corrección:** el apartado 5 decía que los totales se mostraban en un «panel lateral»; en el formulario real están debajo de las líneas. Se mantiene «panel lateral» en la descripción de los wireframes, que es lo que se diseñó entonces.
 - **Pendiente:** tabla 6.4 (horas reales), apartados 8 y 9, Anexo II, lectura final y recorte.
+
+## 27 de octubre de 2026 (tarde) - Memoria: coherencia de horas y caducidad del token
+
+- **Decisión:** se quitó de la tabla 6.4 la columna de horas por etapa. No existe un registro de horas fiable, y una cifra estimada presentada como real no se puede comprobar. Se conserva la dedicación prevista (2 a 3 horas diarias), que es un dato de planificación y no una medición.
+- **Corrección:** el requisito RNF-02 indicaba una caducidad del token de 2 horas, pero la configuración real (`app.jwt.expiration-ms=3600000`) es de una hora, como ya recoge el Anexo I. Se corrigió el requisito para que coincida con lo implementado.
