@@ -431,3 +431,11 @@
 - **Decisión:** la memoria contiene una versión resumida y ordenada por fases, no la copia del diario, que tiene un tamaño muy superior al de un apartado de 4 a 8 páginas. El diario completo queda enlazado desde la memoria (repositorio de la API), de modo que la guía, que lo marca como "importante", se cumple sin saturar el documento.
 - **Decisión:** los problemas se presentan en tabla (problema, causa, solución) porque es el formato que se puede revisar de un vistazo; la justificación de cada decisión de diseño se mantiene en las fases.
 - **Pendiente:** al implementar las facturas y el PDF (T14 y T15) hay que ampliar la fase correspondiente y añadir las filas de problemas nuevos. La memoria sigue siendo extensa a propósito; se sintetizará al final.
+
+## 27 de octubre de 2026 (mañana) - Anexo I: manual de instalación
+
+- **Hecho:** redactado el Anexo I de `memoria.md` (requisitos del equipo, obtención del código, arranque de la API y del cliente, primer uso, ejecución de pruebas, copia de seguridad de `data/`, solución de problemas y limitaciones). Es obligatorio según la guía: sin los dos anexos el proyecto se califica como suspenso.
+- **Decisión:** el manual se construye a partir de los problemas reales del diario: el apartado de solución de problemas recoge las trazas que aparecieron durante el desarrollo (`Could not resolve placeholder 'JWT_SECRET'`, `Illegal base64 character`, `JAVA_HOME` apuntando a otra versión, clases obsoletas en `target/`), así que describen síntomas que realmente ocurren.
+- **Decisión:** `JWT_SECRET` se explica con `export` y con sus tres condiciones (Base64, mínimo 256 bits, válida solo en la terminal donde se define), como se anticipó en las entradas de los días 23 y 26.
+- **Honestidad sobre lo verificado:** los pasos están probados en macOS. Los comandos de Windows se incluyen como referencia y se marcan como no verificados. Los valores de disco (500 MB) y memoria (4 GB) son orientativos, no medidos, y así se indica en el texto.
+- **Pendiente:** Anexo II (manual de usuario), que se redactará cuando estén las pantallas de facturas; las secciones de clientes ya se pueden documentar. Antes de la entrega final, probar el manual completo en un equipo limpio, clonando los dos repositorios desde cero.
