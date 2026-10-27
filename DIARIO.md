@@ -424,3 +424,10 @@
 - **Decisión:** los resultados de las pruebas unitarias se toman de los informes que genera Maven (`target/surefire-reports`) y no de la memoria de lo ocurrido, para que las cifras de la memoria sean comprobables.
 - **Decisión:** las pruebas de facturas y PDF se describen como pendientes en lugar de omitirlas, para no afirmar nada que no se haya ejecutado.
 - **Pendiente:** el apartado 7.2 (diario de desarrollo y estructura de carpetas) queda con un marcador hasta que se redacte; la guía lo exige y marca el diario como "importante".
+
+## 27 de octubre de 2026 (mañana) - Apartado de desarrollo de la memoria (7.2)
+
+- **Hecho:** redactado el apartado 7.2 de `memoria.md`: resumen del diario por fases (entorno, modelo de dominio, seguridad, clientes en la API, cliente JavaFX, pruebas y documentación), tabla de 14 problemas con causa y solución, lecciones aprendidas y estructura de carpetas (con lo que no aparece en los árboles del apartado 5.1.2: `target/`, `data/`, `.gitignore`, Maven Wrapper).
+- **Decisión:** la memoria contiene una versión resumida y ordenada por fases, no la copia del diario, que tiene un tamaño muy superior al de un apartado de 4 a 8 páginas. El diario completo queda enlazado desde la memoria (repositorio de la API), de modo que la guía, que lo marca como "importante", se cumple sin saturar el documento.
+- **Decisión:** los problemas se presentan en tabla (problema, causa, solución) porque es el formato que se puede revisar de un vistazo; la justificación de cada decisión de diseño se mantiene en las fases.
+- **Pendiente:** al implementar las facturas y el PDF (T14 y T15) hay que ampliar la fase correspondiente y añadir las filas de problemas nuevos. La memoria sigue siendo extensa a propósito; se sintetizará al final.
