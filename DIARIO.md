@@ -417,3 +417,10 @@
 - **Problema:** en la captura del listado de clientes salía una columna vacía a la derecha y los emails se cortaban. **Causa:** la tabla usaba la política de columnas por defecto, que respeta el ancho preferido de cada columna. **Solución:** `CONSTRAINED_RESIZE_POLICY` en `clients.fxml`, que reparte todo el ancho entre las columnas.
 - **Hecho:** capturas de las figuras 2 (login) y 3 (listado de clientes) con cinco clientes ficticios (nombres inventados, dominios `.example`, NIF con formato válido) insertadas en la memoria.
 - **Pendiente:** figura 1 (wireframes), figuras 4 a 6 (cuando existan facturas y PDF), tabla 6.4 (horas reales), y la lectura final de estilo.
+
+## 27 de octubre de 2026 - Apartado de pruebas de la memoria (7.3)
+
+- **Hecho:** redactado el apartado 7.3 de `memoria.md` con tres niveles de pruebas: unitarias automáticas (22 pruebas, 0 fallos, 0 errores, según los informes de Surefire de la última ejecución, con Java 25.0.4.1), pruebas manuales de la API con `curl` (10 casos) y pruebas manuales del cliente JavaFX (17 casos), más los problemas que las pruebas destaparon y las pruebas pendientes de facturación.
+- **Decisión:** los resultados de las pruebas unitarias se toman de los informes que genera Maven (`target/surefire-reports`) y no de la memoria de lo ocurrido, para que las cifras de la memoria sean comprobables.
+- **Decisión:** las pruebas de facturas y PDF se describen como pendientes en lugar de omitirlas, para no afirmar nada que no se haya ejecutado.
+- **Pendiente:** el apartado 7.2 (diario de desarrollo y estructura de carpetas) queda con un marcador hasta que se redacte; la guía lo exige y marca el diario como "importante".
