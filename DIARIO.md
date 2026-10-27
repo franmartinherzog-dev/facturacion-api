@@ -507,3 +507,10 @@
 
 - **Decisión:** se quitó de la tabla 6.4 la columna de horas por etapa. No existe un registro de horas fiable, y una cifra estimada presentada como real no se puede comprobar. Se conserva la dedicación prevista (2 a 3 horas diarias), que es un dato de planificación y no una medición.
 - **Corrección:** el requisito RNF-02 indicaba una caducidad del token de 2 horas, pero la configuración real (`app.jwt.expiration-ms=3600000`) es de una hora, como ya recoge el Anexo I. Se corrigió el requisito para que coincida con lo implementado.
+
+## 27 de octubre de 2026 (tarde) - Anexo II: manual de usuario
+
+- **Hecho:** redactado el Anexo II de `memoria.md` (obligatorio según la guía) en ocho apartados: crear cuenta, iniciar y cerrar sesión, clientes, histórico, crear factura, guardar el PDF, problemas frecuentes y limitaciones. Los mensajes de error que cita son los textos reales de la aplicación y reutiliza las figuras 2 a 6.
+- **Corrección durante la redacción:** una primera versión afirmaba que modificar un cliente no afecta a las facturas ya emitidas. Es falso: `Invoice` guarda una referencia al cliente y `PdfService` lee los datos actuales, así que el PDF de una factura antigua mostraría los datos nuevos. Se corrigió el texto y se documentó como limitación.
+- **Hallazgo de diseño (pendiente de decidir):** en una factura real los datos del emisor y del cliente deberían quedar fijados al emitirla. Opciones: (a) dejarlo como limitación documentada (estado actual), o (b) copiar nombre, NIF/CIF y dirección del cliente y del emisor dentro de la factura al crearla. La opción (b) exige cambiar la entidad, el servicio, el PDF y las pruebas, y se valorará con el margen de noviembre.
+- **Pendiente:** apartados 8 y 9, lectura final y recorte; capturas opcionales de las pantallas de registro y del formulario de cliente para el manual.
