@@ -38,4 +38,14 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleClientNotFound(ClientNotFoundException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
     }
+
+    @ExceptionHandler(InvoiceNotFoundException.class)
+    public ProblemDetail handleInvoiceNotFound(InvoiceNotFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(ClientHasInvoicesException.class)
+    public ProblemDetail handleClientHasInvoices(ClientHasInvoicesException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    }
 }

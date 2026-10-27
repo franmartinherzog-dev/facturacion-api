@@ -19,10 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.facturacion.api.dto.ClientRequest;
 import com.facturacion.api.dto.ClientResponse;
+import com.facturacion.api.exception.ClientHasInvoicesException;
 import com.facturacion.api.exception.ClientNotFoundException;
 import com.facturacion.api.model.Client;
 import com.facturacion.api.model.User;
 import com.facturacion.api.repository.ClientRepository;
+import com.facturacion.api.repository.InvoiceRepository;
 import com.facturacion.api.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,12 +36,15 @@ class ClientServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private InvoiceRepository invoiceRepository;
+
     private ClientService clientService;
     private User maria;
 
     @BeforeEach
     void setUp() {
-        clientService = new ClientService(clientRepository, userRepository);
+        clientService = new ClientService(clientRepository, userRepository, invoiceRepository);
         maria = new User("maria", "hash", "Maria SL", "B12345678", "Calle Mayor 1");
     }
 
@@ -137,6 +142,17 @@ class ClientServiceTest {
         clientService.delete("maria", 5L);
 
         verify(clientRepository).delete(client);
+    }
+
+    @Test
+    void deleteRejectsAClientThatHasInvoicesAndDeletesNothing() {
+        Client client = clientOf(maria, "Acme SL");
+        when(userRepository.findByUsername("maria")).thenReturn(Optional.of(maria));
+        when(clientRepository.findByIdAndUser(5L, maria)).thenReturn(Optional.of(client));
+        when(invoiceRepository.existsByClient(client)).thenReturn(true);
+
+        assertThrows(ClientHasInvoicesException.class, () -> clientService.delete("maria", 5L));
+        verify(clientRepository, never()).delete(any());
     }
 
     @Test

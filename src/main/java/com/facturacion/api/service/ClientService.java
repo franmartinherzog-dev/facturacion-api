@@ -1,26 +1,32 @@
 package com.facturacion.api.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.facturacion.api.dto.ClientRequest;
 import com.facturacion.api.dto.ClientResponse;
+import com.facturacion.api.exception.ClientHasInvoicesException;
 import com.facturacion.api.exception.ClientNotFoundException;
 import com.facturacion.api.model.Client;
 import com.facturacion.api.model.User;
 import com.facturacion.api.repository.ClientRepository;
+import com.facturacion.api.repository.InvoiceRepository;
 import com.facturacion.api.repository.UserRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class ClientService {
 
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
+    private final InvoiceRepository invoiceRepository;
 
-    public ClientService(ClientRepository clientRepository, UserRepository userRepository) {
+    public ClientService(ClientRepository clientRepository, UserRepository userRepository,
+                         InvoiceRepository invoiceRepository) {
         this.clientRepository = clientRepository;
         this.userRepository = userRepository;
+        this.invoiceRepository = invoiceRepository;
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +64,11 @@ public class ClientService {
 
     @Transactional
     public void delete(String username, Long id) {
-        clientRepository.delete(findOwnedClient(username, id));
+        Client client = findOwnedClient(username, id);
+        if (invoiceRepository.existsByClient(client)) {
+            throw new ClientHasInvoicesException();
+        }
+        clientRepository.delete(client);
     }
 
     private User findUser(String username) {
