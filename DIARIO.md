@@ -455,3 +455,14 @@
 - **Problema:** error de compilación en `InvoiceServiceTest` (`no suitable constructor found for Invoice`). **Causa:** al construir una factura de apoyo pasé 5 importes y el constructor pide 6. **Solución:** añadir el que faltaba. **Lección:** copiar la firma del constructor antes de usarlo en un test.
 - **Corrección:** anuncié 33 pruebas y salieron 32; me equivoqué al contar (el test nuevo de `InvoiceServiceTest` son 9, no 10). La cifra de la memoria debe ser la de Surefire.
 - **Pendiente:** T15 (PDF con OpenPDF); pantallas de facturas en JavaFX; mostrar en el cliente el mensaje del 409 al borrar un cliente con facturas (ya llega en español por `ApiClient`, solo falta probarlo); actualizar la memoria (7.2, 7.3, figuras) con las facturas.
+
+## 27 de octubre de 2026 - T15: PDF de la factura
+
+- **Hecho:** añadida la dependencia OpenPDF 3.0.3 (`com.github.librepdf:openpdf`, paquete `org.openpdf.text`), `PdfService` (genera el PDF en memoria a partir de la factura guardada) y el endpoint `GET /api/invoices/{id}/pdf` (`Content-Type: application/pdf` y `Content-Disposition: attachment; filename="factura-AAAA-NNNN.pdf"`). Dos pruebas nuevas en `PdfServiceTest`: el resultado es un PDF completo (empieza por `%PDF`, termina en `%%EOF`) y una factura ajena da 404.
+- **Decisión:** el PDF se genera siempre desde los datos guardados, nunca desde lo que envía el cliente, de modo que lo impreso coincide con lo registrado (RF-14). Se genera en un `byte[]` en memoria; no se escriben ficheros en el servidor.
+- **Decisión:** fuente Helvetica estándar de PDF (sin empaquetar fuentes), formato español de números y fechas (`1.234,56 €`, `27/10/2026`) y la fila de IRPF solo aparece si el tipo es mayor que 0.
+- **Verificación antes de escribir código:** OpenPDF 3.x cambió los paquetes (`com.lowagie.text` pasó a `org.openpdf.text`). No pude descargar el `.jar` desde mi entorno, así que se listó su contenido con `unzip -l` en la máquina del proyecto y se escribió el servicio con las clases confirmadas.
+- **Prueba manual:** la factura 2026-0001 se descarga con las cabeceras correctas y el PDF se abre mostrando emisor, cliente, líneas y desglose (250,50 / IVA 52,61 / IRPF -37,58 / total 265,53); una factura inexistente da 404.
+- **Problema:** `./mvnw clean test` falló con 28 errores de compilación (`package org.junit.jupiter.api does not exist`). **Causa:** `PdfServiceTest.java` se creó en `src/main/java` en lugar de `src/test/java`; JUnit y Mockito solo están en el classpath de pruebas. **Solución:** moverlo con `mv`. **Lección:** todo fichero `*Test.java` va en `src/test/java`; la ruta de la instrucción debe copiarse entera.
+- **Pruebas automáticas:** 34 pruebas, 0 fallos.
+- **Pendiente:** pantallas de facturas en el cliente JavaFX (formulario con líneas dinámicas y vista previa, histórico, descarga del PDF con `FileChooser`); actualizar la memoria (7.2, 7.3, figuras 4 a 6, Anexo II).
