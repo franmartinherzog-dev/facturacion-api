@@ -489,3 +489,9 @@
 - **Observación:** en un primer momento `inv_test` mostraba solo la factura 2026-0001. La causa fue que la segunda prueba de `curl` no se había ejecutado; al crear una desde el formulario salió el número siguiente, lo que confirma la numeración.
 - **Calendario:** T14, T15 y T16 estaban previstas entre el 2 y el 20 de noviembre y se han terminado el 27 de octubre. El margen se dedicará a T17 (flujo completo), pulido de la interfaz (CSS), documentación y anexos.
 - **Pendiente:** prueba manual del 409 al borrar un cliente con facturas (API y mensaje en el cliente); T17; `styles.css`; figuras 4 a 6 (formulario de factura, histórico y PDF); tabla 6.4; apartados 8 y 9; Anexo II.
+
+## 27 de octubre de 2026 (tarde) - Prueba del 409 al borrar un cliente con facturas
+
+- **Hecho:** probado el bloqueo del borrado (RF-07) con la API en marcha, por `curl` y desde el cliente de escritorio. La API responde 409 con «No se puede eliminar un cliente que tiene facturas» y el cliente muestra ese mensaje sin quitar al cliente de la tabla. No hizo falta cambiar el código del cliente: `ApiClient` ya muestra el campo `detail` de cualquier error.
+- **Memoria:** añadidas las dos pruebas en 7.3.2 y 7.3.3 y quitadas de las pendientes.
+- **Pendiente:** T17 (flujo completo), `styles.css`, figuras 4 a 6, tabla 6.4, apartados 8 y 9 y Anexo II.
