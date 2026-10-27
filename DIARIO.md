@@ -495,3 +495,10 @@
 - **Hecho:** probado el bloqueo del borrado (RF-07) con la API en marcha, por `curl` y desde el cliente de escritorio. La API responde 409 con «No se puede eliminar un cliente que tiene facturas» y el cliente muestra ese mensaje sin quitar al cliente de la tabla. No hizo falta cambiar el código del cliente: `ApiClient` ya muestra el campo `detail` de cualquier error.
 - **Memoria:** añadidas las dos pruebas en 7.3.2 y 7.3.3 y quitadas de las pendientes.
 - **Pendiente:** T17 (flujo completo), `styles.css`, figuras 4 a 6, tabla 6.4, apartados 8 y 9 y Anexo II.
+
+## 27 de octubre de 2026 (tarde) - Figuras 4, 5 y 6 de la memoria
+
+- **Hecho:** capturas de la pantalla de nueva factura (figura 4), del PDF generado (figura 5) y del histórico de facturas (figura 6), realizadas con el usuario demo y los clientes ficticios, e insertadas en `memoria.md` con su pie de figura. Los importes de la captura del formulario (1.749,00 €) coinciden con los del PDF.
+- **Decisión:** la captura del PDF se recortó al documento (se conserva el original con la ventana del lector en `figuras/fig5-pdf-factura-ventana-original.png`), porque con la ventana completa el texto de la factura quedaba demasiado pequeño en la memoria.
+- **Corrección:** el apartado 5 decía que los totales se mostraban en un «panel lateral»; en el formulario real están debajo de las líneas. Se mantiene «panel lateral» en la descripción de los wireframes, que es lo que se diseñó entonces.
+- **Pendiente:** tabla 6.4 (horas reales), apartados 8 y 9, Anexo II, lectura final y recorte.
