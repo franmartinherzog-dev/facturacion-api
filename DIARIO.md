@@ -542,3 +542,18 @@
 - **Pendiente:** generar el Word final con la plantilla (portada, índice, «página X de Y»), cambiar «Curso 2025-2026» por el curso real, y preguntar al tutor por los límites que la guía y la plantilla contradicen (Contenidos y Metodología) y si las figuras y los anexos cuentan en las páginas.
 - **Error corregido en la Figura 10:** el diagrama de capas mostraba una flecha `InvoiceService → PdfService`, falsa. Al comprobar el código, es `InvoiceController` quien usa `PdfService`, y `PdfService` usa `InvoiceRepository` y `UserRepository`. Se regeneró la figura con Graphviz a partir de `tools/fig10.dot`, con todas las dependencias tomadas de los constructores reales.
 - **Ajuste del Resumen:** al acercarse al límite de una página, la línea de palabras clave pasaba a una segunda página en algunas exportaciones. Se acortó el texto unas 15 palabras (sin quitar contenido): «HTTP y JSON», sin la lista de capas, sin «organizado en tareas pequeñas» y «sobre la seguridad y la lógica de negocio». El Abstract en inglés no se ha tocado.
+
+## 28 de octubre de 2026 - Memoria: Word final con la plantilla
+
+- **Hecho:** `tools/final_docx.py` genera `memoria.docx` (y `memoria.pdf` para revisar) a partir de `memoria.md`: portada de la plantilla (sin paginado), índice de dos niveles con números de página (campo TOC que Word puede actualizar), cabecera con el título, pie «página X de Y» y cuerpo con el formato de la guía. El índice se recalcula hasta que coincide con las páginas reales del PDF.
+- **Resultado:** 62 páginas: portada 1, índice 1, Resumen 1, Abstract 1, Introducción 2, Descripción 2, Contenidos 7, Metodología 4, Desarrollo 5, Conclusiones 2, Bibliografía 2, Anexos 34.
+- **Datos provisionales de la portada:** el título («Sistema de facturación para autónomos y pymes») y el curso («2026-2027») los he puesto yo; el nombre del alumno y del tutor están entre corchetes hasta que se indiquen.
+- **Limitación:** las páginas se miden con LibreOffice; en Word pueden variar una línea o dos, sobre todo en el Resumen, que está casi al límite de una página. Al abrirlo en Word hay que aceptar la actualización de campos y revisar el índice.
+
+## 28 de octubre de 2026 (tarde) - Memoria: ajuste al límite global de 20 páginas
+
+- **Contexto:** la plantilla fija 15-20 páginas para el trabajo (sin anexos ni bibliografía). Con los límites superiores de cada apartado, la parte principal (apartados 1 a 8) sumaba 24 páginas.
+- **Hecho:** las capturas de inicio de sesión, clientes, histórico y PDF pasaron del apartado 5.2.1 al manual de usuario (Anexo II); el listado de 22 tareas de 6.3 se condensó en una tabla y su descripción completa pasó al nuevo Anexo VII; los incrementos de 6.1 se escribieron en una frase. Las figuras se renumeraron en orden de aparición (1 a 6 en el cuerpo, 7 a 10 en el Anexo II). Las palabras clave del Resumen y del Abstract pasaron a cursiva, como pide la plantilla.
+- **Resultado:** Resumen 1, Abstract 1, Introducción 2, Descripción 2, Contenidos 5, Metodología 3, Desarrollo 5, Conclusiones 2. De la Introducción a las Conclusiones suman 19 páginas; con Resumen y Abstract, 21.
+- **Revisión del Word editado por el alumno** (`memoria.editado-28oct.docx`, copia del `memoria.docx` del 28 de octubre a las 13:36): márgenes 2,5 cm, Arial 12, interlineado 1,5, justificado, títulos de capítulo en Arial 16 negrita y mayúsculas, cabecera y pie «X de Y» correctos. Fallos encontrados: el título «1. RESUMEN» había perdido el formato de capítulo y las palabras clave no estaban en cursiva. El generador reutiliza ahora la portada de ese archivo (logo, nombre y tutor).
+- **Pendiente:** si el tutor cuenta Resumen y Abstract dentro de las 20 páginas, recortar unas 300 palabras de la Introducción o de la Descripción.
