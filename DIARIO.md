@@ -557,3 +557,8 @@
 - **Resultado:** Resumen 1, Abstract 1, Introducción 2, Descripción 2, Contenidos 5, Metodología 3, Desarrollo 5, Conclusiones 2. De la Introducción a las Conclusiones suman 19 páginas; con Resumen y Abstract, 21.
 - **Revisión del Word editado por el alumno** (`memoria.editado-28oct.docx`, copia del `memoria.docx` del 28 de octubre a las 13:36): márgenes 2,5 cm, Arial 12, interlineado 1,5, justificado, títulos de capítulo en Arial 16 negrita y mayúsculas, cabecera y pie «X de Y» correctos. Fallos encontrados: el título «1. RESUMEN» había perdido el formato de capítulo y las palabras clave no estaban en cursiva. El generador reutiliza ahora la portada de ese archivo (logo, nombre y tutor).
 - **Pendiente:** si el tutor cuenta Resumen y Abstract dentro de las 20 páginas, recortar unas 300 palabras de la Introducción o de la Descripción.
+
+## 29 de octubre de 2026 - Figuras: nombres de archivo alineados con la numeración
+
+- **Hallazgo (señalado por el alumno):** tras renumerar las figuras por orden de aparición, los nombres de archivo de `figuras/` seguían la numeración antigua (por ejemplo, la «Figura 2» era `fig4-nueva-factura.png`). Los pies de figura sí coincidían con su título, pero archivo y número no.
+- **Corrección:** los diez archivos se renombraron para que el número del nombre coincida con el de la figura (`fig2-nueva-factura.png`, `fig3-er.png`, `fig7-login.png`, etc.), y se actualizaron las rutas de `memoria.md` y los anchos máximos de `tools/build_docx.py`. El Word se regeneró (62 páginas).
