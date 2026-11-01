@@ -584,3 +584,7 @@
 
 - `memoria.md` es la fuente única. Corregido a mano el orden de las figuras 5 y 6 en 7.1.4 (cada imagen seguida de su pie), porque el conversor Word→Markdown había puesto las dos imágenes antes de los dos pies.
 - `memoria.docx` y `memoria.pdf` regenerados desde `memoria.md` con `tools/build_memoria.py`: 67 páginas, sin encabezados huérfanos.
+
+## 2026-11-01 (tarde) — Tablas de F.2 y F.3 con la última columna más ancha
+
+- En `memoria.md` se han reajustado las proporciones de columnas de las tablas de pruebas manuales (F.2 y F.3): la columna «Resultado» ocupaba muy poco y «Correcto» se partía. Memoria regenerada (67 páginas).
