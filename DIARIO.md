@@ -579,3 +579,8 @@
 ## 1 de noviembre de 2026 (tarde) - Memoria regenerada desde Markdown
 - El Word editado a mano tenía objetos flotantes (cuadros de texto y figuras ancladas a la página) que se movían en Pages y en el PDF. Se vuelve a `memoria.md` como fuente única: `tools/docx2md.py` reconstruyó `memoria.md` desde el último Word y `tools/build_memoria.py` genera `memoria.docx` y `memoria.pdf` (pandoc + plantilla, portada de `tools/portada.docx`, índice con enlaces, portada sin numerar y numeración desde el índice, encabezados sin huérfanos, párrafos sin cortar y tablas enteras cuando caben).
 - `tools/final_docx.py` queda obsoleto. A partir de ahora los cambios de texto se hacen en `memoria.md`.
+
+## 2026-11-01 (tarde) — Memoria regenerada con el orden de figuras corregido
+
+- `memoria.md` es la fuente única. Corregido a mano el orden de las figuras 5 y 6 en 7.1.4 (cada imagen seguida de su pie), porque el conversor Word→Markdown había puesto las dos imágenes antes de los dos pies.
+- `memoria.docx` y `memoria.pdf` regenerados desde `memoria.md` con `tools/build_memoria.py`: 67 páginas, sin encabezados huérfanos.
