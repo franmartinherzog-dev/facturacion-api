@@ -562,3 +562,7 @@
 
 - **Hallazgo (señalado por el alumno):** tras renumerar las figuras por orden de aparición, los nombres de archivo de `figuras/` seguían la numeración antigua (por ejemplo, la «Figura 2» era `fig4-nueva-factura.png`). Los pies de figura sí coincidían con su título, pero archivo y número no.
 - **Corrección:** los diez archivos se renombraron para que el número del nombre coincida con el de la figura (`fig2-nueva-factura.png`, `fig3-er.png`, `fig7-login.png`, etc.), y se actualizaron las rutas de `memoria.md` y los anchos máximos de `tools/build_docx.py`. El Word se regeneró (62 páginas).
+
+## 1 de noviembre de 2026 - Anexos coherentes con la memoria editada
+- La memoria (`memoriatfp.docx`) se ha editado a mano; el cuerpo se deja tal cual y se han ajustado solo los anexos en `memoriatfp-coherente.docx`.
+- Cambios: referencias a requisitos corregidas (RNF-20 a RNF-15, RNF-10 a RNF-08), nombres de casos de uso del Anexo III igualados a los del cuerpo, nueva sección C.5 con los atributos de las tablas del modelo E-R (la justificación pasa a C.6), referencias a apartados actualizadas (Anexo VII, apartado F.2) y hitos y gestión de desvíos añadidos al Anexo VII.
