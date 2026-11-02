@@ -15,6 +15,10 @@ import com.facturacion.api.repository.ClientRepository;
 import com.facturacion.api.repository.InvoiceRepository;
 import com.facturacion.api.repository.UserRepository;
 
+/**
+ * Business logic for clients. Every operation is restricted to the clients of the
+ * authenticated user: a client of another user behaves as if it did not exist.
+ */
 @Service
 public class ClientService {
 
@@ -29,6 +33,13 @@ public class ClientService {
         this.invoiceRepository = invoiceRepository;
     }
 
+    /**
+     * Lists the user's clients, optionally filtered by name.
+     *
+     * @param username authenticated user
+     * @param search text to look for in the name (case-insensitive); null or blank returns all
+     * @return the matching clients
+     */
     @Transactional(readOnly = true)
     public List<ClientResponse> list(String username, String search) {
         User user = findUser(username);
@@ -38,11 +49,26 @@ public class ClientService {
         return clients.stream().map(ClientResponse::from).toList();
     }
 
+    /**
+     * Returns one client of the user.
+     *
+     * @param username authenticated user
+     * @param id client identifier
+     * @return the client
+     * @throws ClientNotFoundException if it does not exist or belongs to another user
+     */
     @Transactional(readOnly = true)
     public ClientResponse get(String username, Long id) {
         return ClientResponse.from(findOwnedClient(username, id));
     }
 
+    /**
+     * Creates a client owned by the user.
+     *
+     * @param username authenticated user
+     * @param request client data
+     * @return the saved client
+     */
     @Transactional
     public ClientResponse create(String username, ClientRequest request) {
         User user = findUser(username);
@@ -51,6 +77,15 @@ public class ClientService {
         return ClientResponse.from(clientRepository.save(client));
     }
 
+    /**
+     * Updates the data of a client of the user.
+     *
+     * @param username authenticated user
+     * @param id client identifier
+     * @param request new data
+     * @return the updated client
+     * @throws ClientNotFoundException if it does not exist or belongs to another user
+     */
     @Transactional
     public ClientResponse update(String username, Long id, ClientRequest request) {
         Client client = findOwnedClient(username, id);
@@ -62,6 +97,15 @@ public class ClientService {
         return ClientResponse.from(client);
     }
 
+    /**
+     * Deletes a client of the user. A client that already has invoices cannot be deleted,
+     * so that the issued invoices keep their data.
+     *
+     * @param username authenticated user
+     * @param id client identifier
+     * @throws ClientNotFoundException if it does not exist or belongs to another user
+     * @throws ClientHasInvoicesException if the client has invoices (409)
+     */
     @Transactional
     public void delete(String username, Long id) {
         Client client = findOwnedClient(username, id);

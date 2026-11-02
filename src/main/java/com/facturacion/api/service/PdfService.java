@@ -30,6 +30,10 @@ import com.facturacion.api.model.User;
 import com.facturacion.api.repository.InvoiceRepository;
 import com.facturacion.api.repository.UserRepository;
 
+/**
+ * Generates the PDF of an invoice with OpenPDF: header, issuer and client, lines and
+ * breakdown of amounts, with Spanish number and date formats.
+ */
 @Service
 public class PdfService {
 
@@ -47,6 +51,15 @@ public class PdfService {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Generates the PDF of an invoice of the user.
+     *
+     * @param username authenticated user
+     * @param invoiceId invoice identifier
+     * @return the content of the PDF
+     * @throws InvoiceNotFoundException if it does not exist or belongs to another user
+     * @throws IllegalStateException if the document cannot be built
+     */
     @Transactional(readOnly = true)
     public byte[] generate(String username, Long invoiceId) {
         User user = userRepository.findByUsername(username)

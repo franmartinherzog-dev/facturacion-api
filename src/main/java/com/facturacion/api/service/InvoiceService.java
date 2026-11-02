@@ -19,12 +19,25 @@ import com.facturacion.api.repository.ClientRepository;
 import com.facturacion.api.repository.InvoiceRepository;
 import com.facturacion.api.repository.UserRepository;
 
+/**
+ * Business logic for invoices: calculation of amounts, yearly numbering and
+ * access restricted to the invoices of the authenticated user.
+ *
+ * The API is the only place where amounts are calculated; the client never sends them.
+ */
 @Service
 public class InvoiceService {
 
     private static final BigDecimal HUNDRED = new BigDecimal("100");
 
-    // Amounts of an invoice, all already rounded to 2 decimals
+    /**
+     * Amounts of an invoice, all already rounded to 2 decimals.
+     *
+     * @param taxableBase sum of the lines (quantity x unit price)
+     * @param vatAmount VAT applied to the taxable base
+     * @param irpfAmount IRPF withholding, subtracted from the total
+     * @param total taxable base + VAT - IRPF
+     */
     public record Totals(BigDecimal taxableBase, BigDecimal vatAmount,
                          BigDecimal irpfAmount, BigDecimal total) { }
 
@@ -40,6 +53,12 @@ public class InvoiceService {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Lists the invoices of a user, newest first.
+     *
+     * @param username authenticated user
+     * @return the user's invoices ordered by date and number, descending
+     */
     @Transactional(readOnly = true)
     public List<InvoiceResponse> list(String username) {
         User user = findUser(username);
@@ -48,6 +67,15 @@ public class InvoiceService {
                 .toList();
     }
 
+    /**
+     * Returns one invoice of the user.
+     *
+     * @param username authenticated user
+     * @param id invoice identifier
+     * @return the invoice
+     * @throws InvoiceNotFoundException if it does not exist or belongs to another user (404 in both cases,
+     *         so the existence of other users' invoices is not revealed)
+     */
     @Transactional(readOnly = true)
     public InvoiceResponse get(String username, Long id) {
         User user = findUser(username);
@@ -55,6 +83,15 @@ public class InvoiceService {
                 .orElseThrow(InvoiceNotFoundException::new));
     }
 
+    /**
+     * Creates an invoice: checks that the client belongs to the user, calculates the
+     * amounts, assigns the next number of the year and saves it with its lines.
+     *
+     * @param username authenticated user
+     * @param request client, date, tax rates and lines
+     * @return the saved invoice, with the calculated amounts
+     * @throws ClientNotFoundException if the client does not exist or belongs to another user
+     */
     @Transactional
     public InvoiceResponse create(String username, InvoiceRequest request) {
         User user = findUser(username);
@@ -73,7 +110,17 @@ public class InvoiceService {
         return InvoiceResponse.from(invoiceRepository.save(invoice));
     }
 
-    // Public and static so it can be unit-tested without Spring or a database
+    /**
+     * Calculates the amounts of an invoice. The subtotals of the lines are added without
+     * rounding and the taxable base is rounded only once (HALF_UP, 2 decimals); VAT and IRPF are
+     * then rounded each from that base. Public and static so it can be unit-tested without Spring
+     * or a database.
+     *
+     * @param lines invoice lines
+     * @param vatRate VAT percentage, e.g. 21.00
+     * @param irpfRate IRPF percentage, e.g. 15.00
+     * @return the four amounts
+     */
     public static Totals calculateTotals(List<InvoiceLineRequest> lines,
                                          BigDecimal vatRate, BigDecimal irpfRate) {
         // Sum the unrounded subtotals and round only once
@@ -93,7 +140,14 @@ public class InvoiceService {
         return amount.multiply(rate).divide(HUNDRED, 2, RoundingMode.HALF_UP);
     }
 
-    // Next number of the year for this user: "2026-0001", "2026-0002", ...
+    /**
+     * Next number of the year for this user, in the format YYYY-NNNN: "2026-0001",
+     * "2026-0002", ... The numbering restarts at 0001 each year and is independent for each user.
+     *
+     * @param user owner of the invoices
+     * @param year year of the invoice date
+     * @return the new invoice number
+     */
     private String nextNumber(User user, int year) {
         String prefix = year + "-";
         int next = invoiceRepository

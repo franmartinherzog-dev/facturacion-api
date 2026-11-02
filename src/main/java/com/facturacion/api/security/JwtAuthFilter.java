@@ -12,6 +12,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Filter run once per request: if the Authorization header carries a valid "Bearer" token,
+ * it authenticates the request with the username of the token. Without a token, or with an invalid one,
+ * the request continues unauthenticated and Spring Security rejects it with 401 on protected routes.
+ */
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";

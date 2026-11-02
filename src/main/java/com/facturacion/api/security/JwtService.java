@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
+/**
+ * Creates and validates the JWT tokens (HMAC signature). The secret and the expiration
+ * time come from the configuration (app.jwt.secret and app.jwt.expiration-ms).
+ */
 @Service
 public class JwtService {
 
@@ -23,6 +27,12 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
+    /**
+     * Creates a signed token whose subject is the username.
+     *
+     * @param user authenticated user
+     * @return the compact token
+     */
     public String generateToken(User user) {
         Date now = new Date();
         return Jwts.builder()
@@ -33,6 +43,13 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * Reads the username (subject) of a token after verifying its signature and expiration.
+     *
+     * @param token compact token
+     * @return the username
+     * @throws JwtException if the token is invalid or has expired
+     */
     public String extractUsername(String token) {
         return Jwts.parser()
                 .verifyWith(key)
@@ -42,6 +59,12 @@ public class JwtService {
                 .getSubject();
     }
 
+    /**
+     * Checks the signature and expiration of a token.
+     *
+     * @param token compact token
+     * @return true if the token is valid, false otherwise
+     */
     public boolean validateToken(String token) {
         try {
             extractUsername(token);

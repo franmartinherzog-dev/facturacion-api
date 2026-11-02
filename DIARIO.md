@@ -588,3 +588,9 @@
 ## 2026-11-01 (tarde) — Tablas de F.2 y F.3 con la última columna más ancha
 
 - En `memoria.md` se han reajustado las proporciones de columnas de las tablas de pruebas manuales (F.2 y F.3): la columna «Resultado» ocupaba muy poco y «Correcto» se partía. Memoria regenerada (67 páginas).
+
+## 2026-11-02 — Javadoc en la API
+
+- Añadida documentación interna (Javadoc, en inglés) a las clases con lógica de la API: `InvoiceService`, `ClientService`, `AuthService`, `PdfService`, `JwtService`, `JwtAuthFilter`, `SecurityConfig`, los tres controladores y `GlobalExceptionHandler`. Cada método público indica qué hace, sus parámetros, lo que devuelve y las excepciones que puede lanzar.
+- Solo se han tocado comentarios: tres comentarios `//` antiguos se fusionaron en su Javadoc. No hay cambios de código.
+- Pendiente: el mismo trabajo en el cliente JavaFX.

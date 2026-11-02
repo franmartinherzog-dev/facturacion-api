@@ -9,6 +9,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * Translates the exceptions of the application into HTTP responses (ProblemDetail) with
+ * a message in Spanish: 400 validation, 401 credentials, 404 not found, 409 conflicts.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

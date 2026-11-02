@@ -13,6 +13,9 @@ import com.facturacion.api.model.User;
 import com.facturacion.api.repository.UserRepository;
 import com.facturacion.api.security.JwtService;
 
+/**
+ * Registration and login of users.
+ */
 @Service
 public class AuthService {
 
@@ -28,6 +31,12 @@ public class AuthService {
         this.jwtService = jwtService;
     }
 
+    /**
+     * Registers a new user. The password is stored as a BCrypt hash, never in plain text.
+     *
+     * @param request username, password and issuer data (company name, tax id, address)
+     * @throws UsernameAlreadyExistsException if the username is already taken (409)
+     */
     @Transactional
     public void register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.username())) {
@@ -42,6 +51,14 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    /**
+     * Checks the credentials and issues a JWT.
+     *
+     * @param request username and password
+     * @return the token and the username
+     * @throws InvalidCredentialsException if the user does not exist or the password is wrong; the same
+     *         exception is used in both cases so the response does not reveal which one failed (401)
+     */
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
