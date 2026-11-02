@@ -594,3 +594,9 @@
 - Añadida documentación interna (Javadoc, en inglés) a las clases con lógica de la API: `InvoiceService`, `ClientService`, `AuthService`, `PdfService`, `JwtService`, `JwtAuthFilter`, `SecurityConfig`, los tres controladores y `GlobalExceptionHandler`. Cada método público indica qué hace, sus parámetros, lo que devuelve y las excepciones que puede lanzar.
 - Solo se han tocado comentarios: tres comentarios `//` antiguos se fusionaron en su Javadoc. No hay cambios de código.
 - Pendiente: el mismo trabajo en el cliente JavaFX.
+
+## 2026-11-02 (mañana) — Javadoc en el cliente JavaFX y problema con la base H2
+
+- Añadida documentación interna (Javadoc, en inglés) a las 13 clases del cliente: `Main`, `Session`, `Navigator`, `Formats`, `InvoiceCalculator`, `ApiException`, `ApiClient` (con sus registros y métodos públicos y privados) y los seis controladores. Solo comentarios: siete comentarios `//` antiguos se fusionaron en su Javadoc.
+- Al lanzar `./mvnw test` tras el Javadoc de la API, 33 de 34 pruebas pasaron. `contextLoads` falló primero por no tener `JWT_SECRET` en la terminal y después porque el fichero H2 de desarrollo (`data/facturacion.mv.db`) quedó dañado (`MVStoreException: 36864 != 32768`), probablemente por el cierre brusco de la primera ejecución fallida.
+- Lección: esa prueba arranca la aplicación contra la base real. Mejora pendiente: una configuración de pruebas con H2 en memoria (`src/test/resources/application.properties`).
