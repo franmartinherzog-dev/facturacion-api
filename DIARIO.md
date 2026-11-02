@@ -600,3 +600,8 @@
 - Añadida documentación interna (Javadoc, en inglés) a las 13 clases del cliente: `Main`, `Session`, `Navigator`, `Formats`, `InvoiceCalculator`, `ApiException`, `ApiClient` (con sus registros y métodos públicos y privados) y los seis controladores. Solo comentarios: siete comentarios `//` antiguos se fusionaron en su Javadoc.
 - Al lanzar `./mvnw test` tras el Javadoc de la API, 33 de 34 pruebas pasaron. `contextLoads` falló primero por no tener `JWT_SECRET` en la terminal y después porque el fichero H2 de desarrollo (`data/facturacion.mv.db`) quedó dañado (`MVStoreException: 36864 != 32768`), probablemente por el cierre brusco de la primera ejecución fallida.
 - Lección: esa prueba arranca la aplicación contra la base real. Mejora pendiente: una configuración de pruebas con H2 en memoria (`src/test/resources/application.properties`).
+
+## 2026-11-02 — Pruebas con base de datos en memoria
+
+- Nuevo `src/test/resources/application.properties`: durante las pruebas sustituye al de `main` y usa H2 en memoria (`jdbc:h2:mem:…`, `create-drop`) y una clave JWT fija solo para pruebas. Así `contextLoads` ya no abre ni puede dañar `data/facturacion.mv.db`, y `./mvnw test` funciona en una terminal nueva sin definir `JWT_SECRET`.
+- La aplicación real sigue usando el `application.properties` de `main`, sin cambios.
